@@ -1,0 +1,245 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── ENUMS ─────────────────────────────
+
+enum Gender {
+  male
+  female
+  other
+}
+
+enum VoucherStatus {
+  unused
+  used
+  expired
+}
+
+enum StoreStatus {
+  pending
+  active
+  inactive
+  suspended
+}
+
+enum NotificationStatus {
+  pending
+  sent
+  failed
+  read
+}
+
+enum NotificationType {
+  voucher
+  promo
+  system
+}
+
+enum TransactionType {
+  add
+  subtract
+}
+
+enum ApprovalStatus {
+  pending
+  approved
+  rejected
+}
+
+// ─── MODELS ─────────────────────────────
+
+model User {
+  id             Int              @id @default(autoincrement())
+  zaloId         String?          @unique
+  phone          String?
+  name           String?
+  email          String?
+  avatar         String?
+  birthDate      DateTime?
+  gender         Gender?
+  address        String?
+  totalPoints    Int              @default(500)
+  levelId        Int?
+  isActive       Boolean          @default(true)
+  level          MembershipLevel? @relation(fields: [levelId], references: [id])
+  transactions   Transaction[]
+  vouchers       UserVoucher[]
+  notifications  Notification[]
+  partnerProfile PartnerRequest? // Yêu cầu đăng ký partner
+  partner        Partner? // Quan hệ 1-1 nếu user đã trở thành partner
+  userCodes      UserPointCode[] // Mã đã sử dụng
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model PartnerRequest {
+  id            Int            @id @default(autoincrement())
+  userId        Int            @unique // mỗi user chỉ có thể gửi 1 lần
+  fullName      String
+  phone         String
+  email         String?
+  address       String
+  status        ApprovalStatus @default(pending)
+  reviewedAt    DateTime?
+  reviewedById  Int?
+  adminReviewer Admin?         @relation(fields: [reviewedById], references: [id])
+  createdAt     DateTime       @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Partner {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @unique
+  user        User     @relation(fields: [userId], references: [id])
+  name        String
+  phone       String   @unique
+  password    String
+  isActive    Boolean  @default(true)
+  ownedStores Store[]  @relation("OwnerStore")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Store {
+  id            Int            @id @default(autoincrement())
+  name          String
+  address       String
+  logo          String?
+  pointRate     Float          @default(10)
+  ownerId       Int
+  owner         Partner        @relation("OwnerStore", fields: [ownerId], references: [id])
+  transactions  Transaction[]
+  rewards       Reward[]
+  campaigns     Campaign[]
+  status        ApprovalStatus @default(pending)
+  approvedAt    DateTime?
+  approvedById  Int?
+  adminApprover Admin?         @relation(fields: [approvedById], references: [id])
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @default(now())
+}
+
+model Transaction {
+  id        Int             @id @default(autoincrement())
+  userId    Int
+  storeId   Int?
+  points    Int
+  type      TransactionType
+  createdAt DateTime        @default(now())
+  user      User            @relation(fields: [userId], references: [id])
+  store     Store?          @relation(fields: [storeId], references: [id])
+}
+
+model Reward {
+  id           Int           @id @default(autoincrement())
+  name         String
+  description  String?
+  pointsNeeded Int
+  storeId      Int?
+  isGlobal     Boolean       @default(false)
+  store        Store?        @relation(fields: [storeId], references: [id])
+  quantity     Int?
+  code         String        @unique
+  expiredAt    DateTime?
+  isActive     Boolean       @default(true)
+  userVouchers UserVoucher[]
+}
+
+model UserVoucher {
+  id       Int           @id @default(autoincrement())
+  userId   Int
+  rewardId Int
+  status   VoucherStatus @default(unused)
+  user     User          @relation(fields: [userId], references: [id])
+  reward   Reward        @relation(fields: [rewardId], references: [id])
+}
+
+model MembershipLevel {
+  id        Int     @id @default(autoincrement())
+  name      String
+  minPoints Int
+  maxPoints Int?
+  benefits  String?
+  users     User[]
+}
+
+model Notification {
+  id        Int                @id @default(autoincrement())
+  userId    Int
+  title     String
+  message   String
+  status    NotificationStatus @default(pending)
+  type      NotificationType?
+  createdAt DateTime           @default(now())
+  sentAt    DateTime?
+  user      User               @relation(fields: [userId], references: [id])
+}
+
+model PointPolicy {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  rate        Float
+  startDate   DateTime?
+  endDate     DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+}
+
+model Campaign {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  bonusPoints Int      @default(0)
+  startDate   DateTime
+  endDate     DateTime
+  storeId     Int?
+  store       Store?   @relation(fields: [storeId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model Admin {
+  id              Int              @id @default(autoincrement())
+  username        String           @unique
+  password        String
+  role            String           @default("admin")
+  createdAt       DateTime         @default(now())
+  partnerRequests PartnerRequest[]
+  stores          Store[]
+  createdCodes    PointCode[] // Admin tạo các mã thưởng
+}
+
+// ─── HỆ THỐNG MÃ CỘNG ĐIỂM ─────────────────────────────
+
+model PointCode {
+  id           Int             @id @default(autoincrement())
+  code         String          @unique
+  description  String?
+  points       Int             @default(0)
+  maxUses      Int?
+  usedCount    Int             @default(0)
+  perUserLimit Int?
+  expiredAt    DateTime?
+  createdById  Int?
+  createdBy    Admin?          @relation(fields: [createdById], references: [id])
+  isActive     Boolean         @default(true)
+  createdAt    DateTime        @default(now())
+  userCodes    UserPointCode[]
+}
+
+model UserPointCode {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  pointCodeId Int
+  usedAt      DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id])
+  pointCode   PointCode @relation(fields: [pointCodeId], references: [id])
+}
