@@ -250,54 +250,128 @@ export const partnerService = {
             totalUsedVouchers
         }
     },
-    getVoucherTimeline: async (partnerId, type, storeId) => {
-        // Lấy danh sách store của partner
+    getTopUserPointStore: async (partnerId, storeId) => {
+
+        // 1. Lấy danh sách store thuộc partner
+        const stores = await prisma.store.findMany({
+            where: { ownerId: partnerId },
+            select: { id: true, name : true }
+        });
+
+        const storeIds = stores.map(s => s.id);
+
+        // 2. Nếu truyền storeId thì check có thuộc partner không
+        if (storeId) {
+            storeId = Number(storeId);
+            if (!storeIds.includes(storeId)) {
+                throw new BadrequestException("Store không thuộc partner");
+            }
+        }
+
+        // 3. Query TOP user tích điểm
+        const topUsers = await prisma.transaction.groupBy({
+            by: ["userId"],
+            where: {
+                type: "add",
+                storeId: storeId ? storeId : { in: storeIds }
+            },
+            _sum: {
+                points: true
+            },
+            orderBy: {
+                _sum: { points: "desc" }
+            },
+            take: 10
+        });
+
+        // 4. Lấy info user
+        const userIds = topUsers.map(u => u.userId);
+
+        const users = await prisma.user.findMany({
+            where: { id: { in: userIds } },
+            select: {
+                id: true,
+                name: true,
+                phone: true,
+                avatar: true
+            }
+        });
+
+        // 5. Merge lại
+        const result = topUsers.map(t => ({
+            userId: t.userId,
+            totalPoints: t._sum.points,
+            user: users.find(u => u.id === t.userId)
+        }));
+
+        return result;
+    },
+
+    getPointRevenueTimeline: async (partnerId, type, storeId, startDate, endDate) => {
+        // Lấy danh sách store thuộc partner
         const stores = await prisma.store.findMany({
             where: { ownerId: partnerId },
             select: { id: true }
         });
+
         let storeIds = stores.map(s => s.id);
 
-        // Nếu chọn 1 cửa hàng cụ thể
+        // Nếu chọn 1 store
         if (storeId) {
-            if (!storeIds.includes(Number(storeId))) {
-                throw new BadrequestException("Cửa hàng không thuộc partner");
+            storeId = Number(storeId);
+            if (!storeIds.includes(storeId)) {
+                throw new BadrequestException("Store không thuộc partner");
             }
-            storeIds = [Number(storeId)];
+            storeIds = [storeId];
         }
 
-        // Lấy voucher đã dùng thuộc storeIds
-        const vouchers = await prisma.userVoucher.findMany({
-            where: { reward: { storeId: { in: storeIds } }, status: "used" },
-            select: { createdAt: true }
+        // Build điều kiện thời gian
+        const timeFilter = {};
+        if (startDate) timeFilter.gte = new Date(startDate);
+        if (endDate) timeFilter.lte = new Date(endDate);
+
+        // Lấy transaction type 'add'
+        const transactions = await prisma.transaction.findMany({
+            where: {
+                storeId: { in: storeIds },
+                type: "add",
+                ...(startDate || endDate ? { createdAt: timeFilter } : {})
+            },
+            select: { points: true, createdAt: true }
         });
 
-        // Gom theo ngày/tuần/tháng
         const timeline = {};
-        vouchers.forEach(v => {
-            const date = new Date(v.createdAt);
+
+        transactions.forEach(t => {
+            const date = new Date(t.createdAt);
             let key;
+
             if (type === "day") {
                 key = date.toISOString().split("T")[0]; // YYYY-MM-DD
-            } else if (type === "week") {
+            }
+            else if (type === "week") {
                 const oneJan = new Date(date.getFullYear(), 0, 1);
                 const week = Math.ceil((((date - oneJan) / 86400000) + oneJan.getDay() + 1) / 7);
                 key = `${date.getFullYear()}-W${week}`;
-            } else if (type === "month") {
+            }
+            else if (type === "month") {
                 key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-            } else {
-                throw new BadrequestException("Type phải là day/week/month");
+            }
+            else {
+                throw new BadrequestException("type phải là: day | week | month");
             }
 
-            timeline[key] = (timeline[key] || 0) + 1;
+            timeline[key] = (timeline[key] || 0) + t.points;
         });
 
-        const timelineArray = Object.keys(timeline)
+        return Object.keys(timeline)
             .sort()
-            .map(key => ({ date: key, count: timeline[key] }));
-
-        return timelineArray;
+            .map(key => ({
+                date: key,
+                totalPoints: timeline[key]
+            }));
     }
+
 
 
 }

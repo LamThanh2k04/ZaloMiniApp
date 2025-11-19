@@ -13,6 +13,6 @@ router.put("/updateRewardStore/:rewardStoreId",authMiddleware,validatePartner,pa
 router.get("/getRewardsStore",authMiddleware,validatePartner,partnerController.getRewardsStore)
 router.get("/getUserVouchersByStatus",authMiddleware,validatePartner,partnerController.getUserVouchersByStatus)
 router.get("/getTotal",authMiddleware,validatePartner,partnerController.getTotal)
-router.get("/getVoucherTimeline",authMiddleware,validatePartner,partnerController.getVoucherTimeline)
-router.get("/getVoucherTimeline",authMiddleware,validatePartner,partnerController.getVoucherTimeline)
+router.get("/getTopUserPointStore",authMiddleware,validatePartner,partnerController.getTopUserPointStore)
+router.get("/getVoucherTimeline",authMiddleware,validatePartner,partnerController.getPointRevenueTimeline)
 export default router
