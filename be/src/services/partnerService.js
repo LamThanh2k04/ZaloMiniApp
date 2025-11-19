@@ -48,7 +48,7 @@ export const partnerService = {
             updated
         }
     },
-    getAllStoresPartner: async (partnerId, keyword, page) => {
+    getAllStoresPartner: async (partnerId, keyword,status, page) => {
         const limit = 5
         const skip = (page - 1) * limit
         const whereCondition = {
@@ -57,12 +57,16 @@ export const partnerService = {
                 name: {
                     contains: keyword.toLowerCase()
                 }
-            } : {})
+            } : {}),
+            ...(status ? { status: status } : {})
         }
         const stores = await prisma.store.findMany({
             take: limit,
             skip: skip,
-            where: whereCondition
+            where: whereCondition,
+            orderBy : {
+                createdAt : "desc"
+            }
         })
         const total = await prisma.store.count({
             where: whereCondition
@@ -196,7 +200,7 @@ export const partnerService = {
 
         const stores = await prisma.store.findMany({
             where: { ownerId: partnerId },
-            select: { id: true }
+            select: { id: true , name : true}
         });
         const storeIds = stores.map(s => s.id);
 

@@ -32,7 +32,8 @@ export const partnerController = {
             const partnerId = req.user.id
             const page = Number(req.query.page) || 1
             const keyword = req.query.keyword || ""
-            const data = await partnerService.getAllStoresPartner(partnerId,keyword,page)
+            const status = req.query.status || ""
+            const data = await partnerService.getAllStoresPartner(partnerId,keyword,status,page)
             const response = responseSuccess(data, "Lấy danh sách cửa hàng của đối tác đó thành công")
             res.status(response.status).json(response)
         } catch (err) {
