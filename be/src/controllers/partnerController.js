@@ -17,7 +17,7 @@ export const partnerController = {
     },
     updateStore: async (req, res, next) => {
         try {
-            const storeId = req.user.storeId
+            const storeId = req.params.storeId
             const logo = req.file?.path
             const data = await partnerService.updateStore(storeId, req.body, logo)
             const response = responseSuccess(data, "Cập nhật cửa hàng thành công")
@@ -30,7 +30,20 @@ export const partnerController = {
     getAllStoresPartner: async (req, res, next) => {
         try {
             const partnerId = req.user.id
-            const data = await partnerService.getAllStoresPartner(partnerId)
+            const page = Number(req.query.page) || 1
+            const keyword = req.query.keyword || ""
+            const data = await partnerService.getAllStoresPartner(partnerId,keyword,page)
+            const response = responseSuccess(data, "Lấy danh sách cửa hàng của đối tác đó thành công")
+            res.status(response.status).json(response)
+        } catch (err) {
+            console.error("Lấy danh sách cửa hàng của đối tác đó không thành công")
+            next(err)
+        }
+    },
+      getAllStoresPartnerName: async (req, res, next) => {
+        try {
+            const partnerId = req.user.id
+            const data = await partnerService.getAllStoresPartnerName(partnerId)
             const response = responseSuccess(data, "Lấy danh sách cửa hàng của đối tác đó thành công")
             res.status(response.status).json(response)
         } catch (err) {

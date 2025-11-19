@@ -301,7 +301,13 @@ export const userZaloService = {
     },
     getAllStore: async () => {
         const stores = await prisma.store.findMany({
-            where: { isActive: true, status : "approved" }
+            where: { isActive: true, status : "approved" },
+            select : {
+                id : true,
+                name : true,
+                logo : true,
+                address : true
+            }
         })
         return {
             stores

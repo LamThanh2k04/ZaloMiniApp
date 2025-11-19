@@ -1,5 +1,6 @@
 import { BadrequestException, ConflictException, NotFoundException } from "../common/helpers/exception.helper.js"
 import prisma from "../common/prisma/initPrisma.js"
+import { nanoid } from "nanoid";
 export const partnerService = {
     createStore: async (partnerId, data, logo) => {
         const { name, address, pointRate } = data
@@ -79,7 +80,12 @@ export const partnerService = {
     },
     getAllStoresPartnerName: async (partnerId) => {
         const stores = await prisma.store.findMany({
-            where: { ownerId: partnerId }
+            where: { ownerId: partnerId , isActive : true, status : "approved"},
+            select : {
+                id : true,
+                name : true,
+                logo : true
+            }
         })
         return {
             stores
