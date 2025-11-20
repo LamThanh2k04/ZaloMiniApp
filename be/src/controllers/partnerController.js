@@ -17,7 +17,7 @@ export const partnerController = {
     },
     updateStore: async (req, res, next) => {
         try {
-            const storeId = req.user.storeId
+            const storeId = req.params.storeId
             const logo = req.file?.path
             const data = await partnerService.updateStore(storeId, req.body, logo)
             const response = responseSuccess(data, "Cập nhật cửa hàng thành công")
@@ -30,7 +30,21 @@ export const partnerController = {
     getAllStoresPartner: async (req, res, next) => {
         try {
             const partnerId = req.user.id
-            const data = await partnerService.getAllStoresPartner(partnerId)
+            const page = Number(req.query.page) || 1
+            const keyword = req.query.keyword || ""
+            const status = req.query.status || ""
+            const data = await partnerService.getAllStoresPartner(partnerId,keyword,status,page)
+            const response = responseSuccess(data, "Lấy danh sách cửa hàng của đối tác đó thành công")
+            res.status(response.status).json(response)
+        } catch (err) {
+            console.error("Lấy danh sách cửa hàng của đối tác đó không thành công")
+            next(err)
+        }
+    },
+      getAllStoresPartnerName: async (req, res, next) => {
+        try {
+            const partnerId = req.user.id
+            const data = await partnerService.getAllStoresPartnerName(partnerId)
             const response = responseSuccess(data, "Lấy danh sách cửa hàng của đối tác đó thành công")
             res.status(response.status).json(response)
         } catch (err) {
@@ -96,18 +110,54 @@ export const partnerController = {
             next(err)
         }
     },
-    getVoucherTimeline: async (req, res, next) => {
-        try {
-            const partnerId = req.user.id
-            const type = req.query.type || ""
-            const storeId = Number(req.query.storeId) || 1
-            const data = await partnerService.getVoucherTimeline(partnerId, type, storeId);
-            const response = responseSuccess(data, 'Lấy thống kê lượt sử dụng voucher thành công');
-            res.status(response.status).json(response);
-        } catch (err) {
-            console.error('Lỗi khi lấy thống kê voucher:', err);
-            next(err);
+    getTopUserPointStore: async (req, res, next) => {
+    try {
+        const partnerId = req.user.id;
+        const storeId = req.query.storeId;
+
+        const data = await partnerService.getTopUserPointStore(partnerId, storeId);
+
+        const response = responseSuccess(data, "Lấy top user tích điểm thành công");
+        res.status(response.status).json(response);
+
+    } catch (err) {
+        console.error("Lỗi khi lấy top user:", err);
+        next(err);
+    }
+},
+
+    getPointRevenueTimeline: async (req, res, next) => {
+    try {
+        const partnerId = req.user.id;
+
+        const type = req.query.type;          // day | week | month
+        const storeId = req.query.storeId;    // optional
+        const startDate = req.query.startDate;
+        const endDate = req.query.endDate;
+
+        if (!type) {
+            throw new BadrequestException("type là bắt buộc: day | week | month");
         }
 
+        const data = await partnerService.getPointRevenueTimeline(
+            partnerId,
+            type,
+            storeId,
+            startDate,
+            endDate
+        );
+
+        const response = responseSuccess(
+            data,
+            "Lấy thống kê doanh thu điểm thành công"
+        );
+
+        res.status(response.status).json(response);
+
+    } catch (err) {
+        console.error('Lỗi khi lấy thống kê điểm:', err);
+        next(err);
     }
+}
+
 }
