@@ -5,7 +5,10 @@ import { updateUserLevel } from "../common/utils/updateUserLevel.js"
 export const userZaloService = {
     getInfoUserZalo: async (userZaloId) => {
         const userZalo = await prisma.user.findUnique({
-            where: { id: Number(userZaloId) }
+            where: { id: Number(userZaloId) },
+            include : {
+            level : true
+            }
         })
         return {
             userZalo
