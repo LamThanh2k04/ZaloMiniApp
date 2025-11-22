@@ -1,9 +1,9 @@
 import './App.css'
 import { Routes, Route, BrowserRouter } from "react-router"
 import { Toaster } from 'react-hot-toast';
-import Login from './pages/login/Login'
-import DashBoardAdmin from './pages/dashboard-admin/DashBoardAdmin';
-import DashBoardPartner from './pages/dashboard-partner/DashBoardPartner';
+import Login from './pages/Login/Login'
+import DashBoardAdmin from './pages/DashBoardAdmin/DashBoardAdmin';
+import DashBoardPartner from './pages/DashBoardPartner/DashBoardPartner';
 function App() {
   return (
     <>

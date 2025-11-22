@@ -5,11 +5,13 @@ import { loginAdminService, loginPartnerService } from "../../common/api/auth/lo
 import zaloAnimation from '../../assets/animations/zalo-mini-app.json';
 import Lottie from 'lottie-react';
 import toast from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { loginUser } from "../../common/redux/userSlice";
 
 export default function Login() {
-    const [role, setRole] = useState("admin"); // default admin
+    const [role, setRole] = useState("admin");
     const navigate = useNavigate();
-
+    const dispatch = useDispatch();
     const {
         register,
         handleSubmit,
@@ -19,12 +21,14 @@ export default function Login() {
     const onSubmit = async (data) => {
         try {
             let res;
-
             if (role === "admin") {
                 res = await loginAdminService({
-                    username: data.username,
-                    password: data.password,
+                    ...data, role: "admin"
                 });
+                const { user, accessToken } = res.data.data.token;
+                const userData = { ...user, accessToken };
+                localStorage.setItem("user", JSON.stringify(userData));
+                dispatch(loginUser(userData));
                 console.log("admin: ", res);
             }
 
@@ -33,6 +37,11 @@ export default function Login() {
                     phone: data.phone,
                     password: data.password,
                 });
+                const { user, accessToken } = res.data.data.token;
+                const userData = { ...user, accessToken };
+                localStorage.setItem("user", JSON.stringify(userData));
+                dispatch(loginUser(userData));
+                console.log("partner: ", res);
             }
             toast.success("Đăng nhập thành công");
             navigate(`/${role}/dashboard`);
