@@ -167,8 +167,8 @@ export const partnerService = {
             ...(keyword
                 ? {
                     OR: [
-                        { name: { contains: keyword, mode: "insensitive" } },
-                        { store: { name: { contains: keyword, mode: "insensitive" } } },
+                        { name: { contains: keyword.toLowerCase() } },
+                        { store: { name: { contains: keyword.toLowerCase() } } },
                     ],
                 }
                 : {}),
