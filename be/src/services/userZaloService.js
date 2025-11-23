@@ -130,6 +130,7 @@ export const userZaloService = {
     },
     registerPartnerRequest: async (userId, data) => {
         const { fullName, phone, email, address } = data
+        console.log(data)
 
         const existing = await prisma.partnerRequest.findUnique({
             where: { userId: Number(userId) }
