@@ -1,15 +1,14 @@
 import React from 'react'
 import MenuAdmin from './MenuAdmin'
 import MenuPartner from './MenuPartner'
+import { useSelector } from 'react-redux'
 
 function AppSideBar() {
-    switch (role) {
-        case "admin":
-            return <MenuAdmin />
-        case "partner":
-            return <MenuPartner />
-        default:
-            return null;
+    const { user } = useSelector((state) => state.userSlice);
+    if (user.role === "admin") {
+        return <MenuAdmin />
+    } else {
+        return <MenuPartner />
     }
 }
 

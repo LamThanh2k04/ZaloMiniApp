@@ -6,7 +6,7 @@ export const https = axios.create({
 https.interceptors.request.use(
     (config) => {
         if (typeof window !== "undefined") {
-            const userJson = localStorage.getItem("user",);
+            const userJson = localStorage.getItem("user");
             if (userJson) {
                 const userInfo = JSON.parse(userJson);
                 const token = userInfo?.accessToken;
