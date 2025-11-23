@@ -585,6 +585,7 @@ export const adminService = {
         const limit = 5
         const skip = (page - 1) * limit
         const whereCondition = {
+            isGlobal : true,
             ...(keyword && {
                 OR: [
                     {
@@ -593,7 +594,12 @@ export const adminService = {
                         }
                     },
                     {
-                        pointsNeeded: Number(keyword)
+                        code : {
+                            contains: keyword.toLowerCase()
+                        }
+                    },
+                    {
+                        pointsNeeded: Number(keyword.toLowerCase())
                     }
                 ]
             })
