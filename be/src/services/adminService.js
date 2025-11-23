@@ -433,8 +433,8 @@ export const adminService = {
             ...(keyword && {
                 OR: [
                     { user: { name: { contains: keyword.toLowerCase() } } },
-                    { user: { phoneNumber: { contains: Number(keyword.toLowerCase()) } } },
-                    { pointCode: { code: { contains: Number(keyword.toLowerCase()) } } }
+                    { user: { phoneNumber: { contains: keyword.toLowerCase() } } },
+                    { pointCode: { code: { contains: keyword.toLowerCase() } } }
                 ]
 
             })
