@@ -36,6 +36,7 @@ function App() {
         <Routes>
           <Route path='/' element={<Login />} />
           <Route path='/admin/dashboard' element={<DashBoardAdmin />}>
+            <Route index element={<Overview />} />
             <Route path='overview' element={<Overview />} />
             <Route path='user' element={<UserManager />} />
             <Route path='partner' element={<PartnerManager />} />
