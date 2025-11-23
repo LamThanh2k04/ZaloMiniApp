@@ -282,7 +282,7 @@ export const adminService = {
             take: limit,
             skip: skip,
             where: whereCondition,
-            
+
         })
         const total = await prisma.partner.count({
             where: whereCondition
@@ -555,7 +555,7 @@ export const adminService = {
     },
     updateRewardGlobal: async (rewardGlobalId, data) => {
         const { name, description, pointsNeeded, quantity, expiredAt, isActive } = data
-        if(!rewardGlobalId) throw new BadrequestException("thieeu")
+        if (!rewardGlobalId) throw new BadrequestException("thieeu")
         const rewardGlobal = await prisma.reward.findUnique({
             where: { id: Number(rewardGlobalId) }
         })
@@ -585,7 +585,7 @@ export const adminService = {
         const limit = 5
         const skip = (page - 1) * limit
         const whereCondition = {
-            isGlobal : true,
+            isGlobal: true,
             ...(keyword && {
                 OR: [
                     {
@@ -594,13 +594,12 @@ export const adminService = {
                         }
                     },
                     {
-                        code : {
+                        code: {
                             contains: keyword.toLowerCase()
                         }
                     },
-                    {
-                        pointsNeeded: Number(keyword.toLowerCase())
-                    }
+                    ...(isNaN(Number(keyword)) ? [] : [{ pointsNeeded: Number(keyword) }])
+
                 ]
             })
         }
@@ -710,7 +709,6 @@ export const adminService = {
             }
         }
 
-        // 3️⃣ Lấy dữ liệu giao dịch điểm
         const transactions = await prisma.transaction.findMany({
             where: {
                 createdAt: {
