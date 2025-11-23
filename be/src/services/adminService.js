@@ -282,9 +282,7 @@ export const adminService = {
             take: limit,
             skip: skip,
             where: whereCondition,
-            include: {
-                store: true
-            }
+            
         })
         const total = await prisma.partner.count({
             where: whereCondition
