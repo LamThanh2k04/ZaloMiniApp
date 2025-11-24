@@ -269,7 +269,7 @@ export const adminController = {
             const range = req.query.range
             const storeId = req.query.storeId
             const data = await adminService.getPointLineChart({ startDate, endDate, range, storeId })
-            responseSuccess(data, "Lấy dữ liệu biểu đồ điểm giao dịch của người dùng toàn hệ thống thành công")
+            const response =responseSuccess(data, "Lấy dữ liệu biểu đồ điểm giao dịch của người dùng toàn hệ thống thành công")
             res.status(response.status).json(response)
         } catch (err) {
             console.error("Lấy dữ liệu biểu đồ điểm giao dịch của người dùng toàn hệ thống thành công", err)
