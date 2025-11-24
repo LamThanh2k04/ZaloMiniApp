@@ -278,7 +278,7 @@ export const adminController = {
     },
     getAllStore : async (req,res,next) => {
             try {
-                const data = await userZaloService.getAllStore()
+                const data = await adminService.getAllStore()
                 const response = responseSuccess(data, "Lấy tất cả cửa hàng thành công")
                 res.status(response.status).json(response)
              } catch (err) {
