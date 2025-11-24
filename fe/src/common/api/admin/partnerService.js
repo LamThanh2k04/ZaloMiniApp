@@ -13,5 +13,5 @@ export const approvePartnerRequest = (requestId) => {
     return https.post(`/api/admin/approvePartnerRequest/${requestId}`);
 }
 export const rejectPartnerRequest = (requestId) => {
-    return https.post(`/admin/rejectPartnerRequest/${requestId}`);
+    return https.post(`/api/admin/rejectPartnerRequest/${requestId}`);
 }
