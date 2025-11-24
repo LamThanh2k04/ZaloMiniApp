@@ -6,9 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { removeUser } from '../../common/redux/userSlice';
 import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
-
 const { confirm } = Modal;
-
 function MenuAdmin() {
     const navigate = useNavigate();
     const dispatch = useDispatch();

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { getAllPartnerRequestService } from '../../../common/api/admin/partnerService';
-import { OctagonX, SquarePen } from 'lucide-react';
+import { getAllPartnerRequestService, approvePartnerRequest, rejectPartnerRequest } from '../../../common/api/admin/partnerService';
+import { Modal } from 'antd';
+import toast from 'react-hot-toast';
 
 function PartnerRequest() {
     const [partnerRequest, setPartnerRequest] = useState([]);
@@ -31,6 +32,43 @@ function PartnerRequest() {
             console.log(error);
         }
     }
+    const handleApprove = (requestId) => {
+        Modal.confirm({
+            title: "Bạn có chắc chắn muốn chấp nhận yêu cầu này?",
+            okText: "Chấp nhận",
+            cancelText: "Huỷ",
+            onOk: async () => {
+                try {
+                    const res = await approvePartnerRequest(requestId);
+                    console.log("Đã chấp nhận yêu cầu: ", res);
+                    toast.success("Đã chấp nhận yêu cầu");
+                    setPartnerRequest(prev => prev.map(p => p.id === requestId ? { ...p, status: "approved" } : p))
+                    console.log()
+                } catch (error) {
+                    console.log(error);
+                    toast.error("Chưa chấp nhận yêu cầu");
+                }
+            }
+        })
+    }
+    const handleReject = (requestId) => {
+        Modal.confirm({
+            title: "Bạn có chắc chắn muốn từ chối yêu cầu này?",
+            okText: "Từ chối",
+            cancelText: "Huỷ",
+            onOk: async () => {
+                try {
+                    const res = await rejectPartnerRequest(requestId);
+                    console.log("Đã từ chối yêu cầu: ", res);
+                    toast.success("Đã từ chối yêu cầu");
+                    setPartnerRequest(prev => prev.map(p => p.id === requestId ? { ...p, status: "rejected" } : p));
+                } catch (error) {
+                    console.log(error);
+                    toast.error("Chưa từ chối yêu cầu");
+                }
+            }
+        })
+    }
     useEffect(() => {
         fetchAllPartnerRequest();
     }, [page])
@@ -46,7 +84,7 @@ function PartnerRequest() {
                             <th className="text-left px-4 py-2 font-medium text-gray-700">Số điện thoại</th>
                             <th className="text-left px-4 py-2 font-medium text-gray-700">Địa chỉ</th>
                             <th className="text-left px-4 py-2 font-medium text-gray-700">Trạng thái</th>
-                            <th className="text-center px-4 py-2 font-medium text-gray-700">Hành động</th>
+                            <th className="text-left px-4 py-2 font-medium text-gray-700">Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -63,17 +101,24 @@ function PartnerRequest() {
                                     <td className="px-4 py-2">{pr.email}</td>
                                     <td className="px-4 py-2">{pr.phone}</td>
                                     <td className="px-4 py-2">{pr.address}</td>
-                                    <td className='px-4 py-2'>
+                                    <td className='px-4 py-2 text-left'>
                                         <span className={STATUS_UI[pr.status]?.class}>
                                             {STATUS_UI[pr.status]?.label}
                                         </span>
                                     </td>
-                                    <td className="px-4 py-2 flex items-center justify-center gap-2">
-                                        <button className="items-center cursor-pointer px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
-                                            <SquarePen className="text-sm" />
+                                    <td className="px-4 py-2 flex items-center justify-start gap-2">
+                                        <button
+                                            onClick={() => handleApprove(pr.id)}
+                                            className="px-3 py-1 bg-green-500 text-white transition cursor-pointer rounded hover:bg-green-600"
+                                        >
+                                            Chấp nhận
                                         </button>
-                                        <button className="px-3 py-1 bg-red-500 cursor-pointer text-white rounded hover:bg-red-600 transition">
-                                            <OctagonX className="text-sm" />
+
+                                        <button
+                                            onClick={() => handleReject(pr.id)}
+                                            className="px-3 py-1 bg-red-500 text-white transition cursor-pointer rounded hover:bg-red-600"
+                                        >
+                                            Từ chối
                                         </button>
                                     </td>
                                 </tr>

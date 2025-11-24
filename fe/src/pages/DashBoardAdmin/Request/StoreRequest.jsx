@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { getAllStoreRequest } from '../../../common/api/admin/storeService'
-import { OctagonX, SquarePen } from 'lucide-react';
+import { approveStoreRequest, getAllStoreRequest, rejectStoreRequest } from '../../../common/api/admin/storeService'
+import { Modal } from 'antd';
+import toast from 'react-hot-toast';
 
 function StoreRequest() {
     const [storeRequest, setStoreRequest] = useState([]);
@@ -31,6 +32,42 @@ function StoreRequest() {
             console.log(error);
         }
     }
+    const handleApprove = (requestId) => {
+        Modal.confirm({
+            title: "Bạn có chắc chắn muốn chấp nhận yêu cầu này?",
+            okText: "Chấp nhận",
+            cancelText: "Huỷ",
+            onOk: async () => {
+                try {
+                    const res = await approveStoreRequest(requestId);
+                    console.log("Chấp nhận yêu cầu từ cửa hàng: ", res);
+                    toast.success("Đã chấp nhận yêu cầu từ cửa hàng")
+                    setStoreRequest(prev => prev.map(p => p.id === requestId ? { ...p, status: "approved" } : p));
+                } catch (error) {
+                    console.log(error);
+                    toast.error("Chưa chấp nhận yêu cầu từ cửa hàng");
+                }
+            }
+        })
+    }
+    const handleReject = (requestId) => {
+        Modal.confirm({
+            title: "Bạn có chắc chắn muốn từ chối yêu cầu này?",
+            okText: "Từ chối",
+            cancelText: "Huỷ",
+            onOk: async () => {
+                try {
+                    const res = await rejectStoreRequest(requestId);
+                    console.log("Đã từ chối yêu cầu từ cửa hàng: ", res);
+                    toast.success("Đã từ chối yêu cầu từ cửa hàng");
+                    setStoreRequest(prev => prev.map(p => p.id === requestId ? { ...p, status: "rejected" } : p));
+                } catch (error) {
+                    console.log(error);
+                    toast.error("Chưa từ chối yêu cầu từ cửa hàng");
+                }
+            }
+        })
+    }
     useEffect(() => {
         fetchAllStoreRequest();
     }, [page]);
@@ -47,7 +84,7 @@ function StoreRequest() {
                             <th className="text-left px-4 py-2 font-medium text-gray-700">Điểm của cửa hàng</th>
                             <th className="text-left px-4 py-2 font-medium text-gray-700">Trạng thái</th>
                             <th className="text-left px-4 py-2 font-medium text-gray-700">Hoạt động</th>
-                            <th className="text-center px-4 py-2 font-medium text-gray-700">Hành động</th>
+                            <th className="text-left px-4 py-2 font-medium text-gray-700">Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -82,15 +119,20 @@ function StoreRequest() {
                                             {STATUS_UI[sr.status]?.label}
                                         </span>
                                     </td>
-                                    <td className="px-4 py-2 h-full">
-                                        <div className="flex items-center justify-center gap-2 h-full">
-                                            <button className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
-                                                <SquarePen className="text-sm" />
-                                            </button>
-                                            <button className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition">
-                                                <OctagonX className="text-sm" />
-                                            </button>
-                                        </div>
+                                    <td className="px-4 py-2 flex items-center justify-start gap-2">
+                                        <button
+                                            onClick={() => handleApprove(sr.id)}
+                                            className="px-3 py-1 bg-green-500 mt-3 text-white transition cursor-pointer rounded hover:bg-green-600"
+                                        >
+                                            Chấp nhận
+                                        </button>
+
+                                        <button
+                                            onClick={() => handleReject(sr.id)}
+                                            className="px-3 py-1 bg-red-500 text-white mt-3 transition cursor-pointer rounded hover:bg-red-600"
+                                        >
+                                            Từ chối
+                                        </button>
                                     </td>
                                 </tr>
                             ))

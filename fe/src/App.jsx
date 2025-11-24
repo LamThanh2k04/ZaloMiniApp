@@ -8,9 +8,9 @@ import UserManager from './pages/DashBoardAdmin/Account/UserManager';
 import PartnerManager from './pages/DashBoardAdmin/Account/PartnerManager';
 import PartnerRequest from './pages/DashBoardAdmin/Request/PartnerRequest';
 import StoreRequest from './pages/DashBoardAdmin/Request/StoreRequest';
-import PointCode from './pages/DashBoardAdmin/PointAndLevel/PointCode';
-import MemberLevel from './pages/DashBoardAdmin/PointAndLevel/MemberLevel';
-import UserUsedPointCode from './pages/DashBoardAdmin/PointAndLevel/UserUsedPointCode';
+import PointCode from './pages/DashBoardAdmin/PointCode/PointCode';
+import MemberLevel from './pages/DashBoardAdmin/MemberLevel/MemberLevel';
+import UserUsedPointCode from './pages/DashBoardAdmin/PointCode/UserUsedPointCode';
 import Reward from './pages/DashBoardAdmin/Reward/Reward';
 import Overview from './pages/DashBoardAdmin/Overview/Overview';
 function App() {

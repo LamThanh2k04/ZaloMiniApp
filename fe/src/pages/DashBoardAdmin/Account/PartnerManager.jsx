@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { getAllPartnerService } from '../../../common/api/admin/partnerService';
+import { getAllPartnerService, updatePartnerActive } from '../../../common/api/admin/partnerService';
 import { useDebounce } from 'use-debounce';
-import { OctagonX, SquarePen, UserRoundPlus } from 'lucide-react';
+import { Switch } from "antd";
+import toast from 'react-hot-toast';
+
 
 function PartnerManager() {
     const [pagination, setPagination] = useState();
@@ -17,6 +19,17 @@ function PartnerManager() {
             console.log("Lấy danh sách đối tác: ", res);
         } catch (error) {
             console.log(error);
+        }
+    }
+    const handleToggleActive = async (partnerId, val) => {
+        try {
+            const res = await updatePartnerActive(partnerId, { isActive: val });
+            console.log("Cập nhật trạng thái đối tác: ", res)
+            toast.success("Cập nhật trạng thái đối tác thành công");
+            setPartner(prev => prev.map(p => p.id === partnerId ? { ...p, isActive: val } : p))
+        } catch (error) {
+            console.log(error);
+            toast.error("Cập nhật trạng thái đối tác thất bại");
         }
     }
     const handleSearchChange = (e) => {
@@ -48,7 +61,7 @@ function PartnerManager() {
                             <th className="text-left px-4 py-2 font-medium text-gray-700">Số điện thoại</th>
                             <th className="text-left px-4 py-2 font-medium text-gray-700">Trạng thái</th>
                             <th className="text-left px-4 py-2 font-medium text-gray-700">Mã người dùng</th>
-                            <th className="text-center px-4 py-2 font-medium text-gray-700">Hành động</th>
+                            <th className="text-left px-4 py-2 font-medium text-gray-700">Duyệt trạng thái</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -75,13 +88,11 @@ function PartnerManager() {
                                         )}
                                     </td>
                                     <td className="px-4 py-2">{p.userId}</td>
-                                    <td className="px-4 py-2 flex items-center justify-center gap-2">
-                                        <button className="items-center cursor-pointer px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
-                                            <SquarePen className="text-sm" />
-                                        </button>
-                                        <button className="px-3 py-1 bg-red-500 cursor-pointer text-white rounded hover:bg-red-600 transition">
-                                            <OctagonX className="text-sm" />
-                                        </button>
+                                    <td className="px-4 py-2 text-left">
+                                        <Switch
+                                            checked={p.isActive}
+                                            onChange={(val) => handleToggleActive(p.id, val)}
+                                        />
                                     </td>
                                 </tr>
                             ))
