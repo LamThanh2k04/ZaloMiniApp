@@ -28,4 +28,5 @@ router.get("/getTotal",authMiddleware,validateAdmin,adminController.getTotal)
 router.get("/topUsersByPoints",authMiddleware,validateAdmin,adminController.topUsersByPoints)
 router.get("/getMemberLevelDistribution",authMiddleware,validateAdmin,adminController.getMemberLevelDistribution)
 router.get("/getPointLineChart",authMiddleware,validateAdmin,adminController.getPointLineChart)
+router.get("/getAllStore",authMiddleware,validateAdmin,adminController.getAllStore)
 export default router

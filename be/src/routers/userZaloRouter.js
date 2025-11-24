@@ -16,6 +16,6 @@ router.post("/registerPartnerRequest",authMiddleware,userZaloController.register
 router.get("/getAllRewardsUser",authMiddleware,userZaloController.getAllRewardsUser)
 router.get("/getAllNotificationUser",authMiddleware,userZaloController.getAllNotificationUser)
 router.get("/getInfoNotificationUser/:notificationId",authMiddleware,userZaloController.getInfoNotificationUser)
-router.get("/getAllStore",userZaloController.getInfoNotificationUser)
+router.get("/getAllStore",userZaloController.getAllStore)
 router.get("/getInfoRewardUser/:rewardId",authMiddleware,userZaloController.getInfoNotificationUser)
 export default router

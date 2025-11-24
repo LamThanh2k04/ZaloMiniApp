@@ -786,6 +786,20 @@ export const adminService = {
         })
         console.log("Đã cập nhật", result.count, "Đã hết hạn phần thưởng")
     },
+       getAllStore: async () => {
+        const stores = await prisma.store.findMany({
+            where: { isActive: true, status : "approved" },
+            select : {
+                id : true,
+                name : true,
+                logo : true,
+                address : true
+            }
+        })
+        return {
+            stores
+        }
+    }
 
 
 

@@ -275,5 +275,15 @@ export const adminController = {
             console.error("Lấy dữ liệu biểu đồ điểm giao dịch của người dùng toàn hệ thống thành công", err)
             next(err)
         }
-    }
+    },
+    getAllStore : async (req,res,next) => {
+            try {
+                const data = await userZaloService.getAllStore()
+                const response = responseSuccess(data, "Lấy tất cả cửa hàng thành công")
+                res.status(response.status).json(response)
+             } catch (err) {
+                console.error("Lấy tất cả cửa hàng không thành công", err)
+                next(err)
+            }
+        },
 }
