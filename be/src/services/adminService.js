@@ -681,13 +681,14 @@ export const adminService = {
 
         // 1️⃣ Nếu user chọn startDate + endDate → dùng luôn, bỏ qua range
         if (startDate && endDate) {
-            from = new Date(startDate);
-            to = new Date(endDate);
+            from = startOfDay(new Date(startDate))
+            to = endOfDay(new Date(endDate))
 
             if (isNaN(from) || isNaN(to)) {
                 throw new BadrequestException("Invalid startDate or endDate");
             }
         }
+
         else {
             // 2️⃣ Nếu không có date range → dùng range
             const now = new Date();
@@ -715,7 +716,13 @@ export const adminService = {
                     gte: from,
                     lte: to
                 },
-                ...(storeId && { storeId: Number(storeId) })
+               ...(storeId ? { storeId: Number(storeId) } : {}),
+
+            },
+            include: {
+                user: true,
+                store:true,
+                
             },
             orderBy: { createdAt: "asc" }
         });
@@ -723,13 +730,29 @@ export const adminService = {
         // 4️⃣ Format dữ liệu cho biểu đồ
         const data = transactions.map(tr => ({
             date: tr.createdAt,
-            points: tr.type === "add" ? tr.points : -tr.points
+            points: tr.type === "add" ? tr.points : -tr.points,
+            user: {
+                id: tr.user.id,
+                name: tr.user.name,
+            },
+            store: tr.store
+                ? {
+                    id: tr.store.id,
+                    name: tr.store.name,
+                }
+                : null
         }));
+
+        const totalAdd = data.filter(i => i.points > 0).reduce((s, x) => s + x.points, 0)
+        const totalSubtract = data.filter(i => i.points < 0).reduce((s, x) => s + x.points, 0)
+        const totalNet = totalAdd + totalSubtract
 
         return {
             startDate: from,
             endDate: to,
-            total: data.reduce((sum, i) => sum + i.points, 0),
+            totalAdd,
+            totalSubtract,
+            totalNet,
             data
         };
     },
