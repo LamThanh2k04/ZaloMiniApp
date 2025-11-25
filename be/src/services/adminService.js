@@ -800,8 +800,4 @@ export const adminService = {
             stores
         }
     }
-
-
-
-
 }
