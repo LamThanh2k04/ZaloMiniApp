@@ -15,5 +15,5 @@ router.get("/getRewardsStore",authMiddleware,validatePartner,partnerController.g
 router.get("/getUserVouchersByStatus",authMiddleware,validatePartner,partnerController.getUserVouchersByStatus)
 router.get("/getTotal",authMiddleware,validatePartner,partnerController.getTotal)
 router.get("/getTopUserPointStore",authMiddleware,validatePartner,partnerController.getTopUserPointStore)
-router.get("/getVoucherTimeline",authMiddleware,validatePartner,partnerController.getPointRevenueTimeline)
+router.get("/getPointRevenueTimeline",authMiddleware,validatePartner,partnerController.getPointRevenueTimeline)
 export default router

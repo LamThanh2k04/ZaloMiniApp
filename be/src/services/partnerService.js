@@ -1,6 +1,16 @@
 import { BadrequestException, ConflictException, NotFoundException } from "../common/helpers/exception.helper.js"
 import prisma from "../common/prisma/initPrisma.js"
 import { nanoid } from "nanoid";
+import { Prisma } from "@prisma/client";
+
+import {
+    startOfDay,
+    endOfDay,
+    startOfWeek,
+    endOfWeek,
+    startOfMonth,
+    endOfMonth,
+} from "date-fns";
 export const partnerService = {
     createStore: async (partnerId, data, logo) => {
         const { name, address, pointRate } = data
@@ -48,7 +58,7 @@ export const partnerService = {
             updated
         }
     },
-    getAllStoresPartner: async (partnerId, keyword,status, page) => {
+    getAllStoresPartner: async (partnerId, keyword, status, page) => {
         const limit = 5
         const skip = (page - 1) * limit
         const whereCondition = {
@@ -64,8 +74,8 @@ export const partnerService = {
             take: limit,
             skip: skip,
             where: whereCondition,
-            orderBy : {
-                createdAt : "desc"
+            orderBy: {
+                createdAt: "desc"
             }
         })
         const total = await prisma.store.count({
@@ -84,11 +94,11 @@ export const partnerService = {
     },
     getAllStoresPartnerName: async (partnerId) => {
         const stores = await prisma.store.findMany({
-            where: { ownerId: partnerId , isActive : true, status : "approved"},
-            select : {
-                id : true,
-                name : true,
-                logo : true
+            where: { ownerId: partnerId, isActive: true, status: "approved" },
+            select: {
+                id: true,
+                name: true,
+                logo: true
             }
         })
         return {
@@ -200,14 +210,14 @@ export const partnerService = {
 
         const stores = await prisma.store.findMany({
             where: { ownerId: partnerId },
-            select: { id: true , name : true}
+            select: { id: true, name: true }
         });
         const storeIds = stores.map(s => s.id);
 
 
         const whereCondition = {
             reward: { storeId: { in: storeIds } },
-           ...(status ? { status } : {})
+            ...(status ? { status } : {})
         };
 
         const userVouchers = await prisma.userVoucher.findMany({
@@ -265,7 +275,7 @@ export const partnerService = {
         // 1. Lấy danh sách store thuộc partner
         const stores = await prisma.store.findMany({
             where: { ownerId: partnerId },
-            select: { id: true, name : true }
+            select: { id: true, name: true }
         });
 
         const storeIds = stores.map(s => s.id);
@@ -317,71 +327,49 @@ export const partnerService = {
         return result;
     },
 
-    getPointRevenueTimeline: async (partnerId, type, storeId, startDate, endDate) => {
-        // Lấy danh sách store thuộc partner
+    getPointRevenueTimeline: async (partnerId, storeId, startDate, endDate) => {
+
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+
+        // 1. Lấy danh sách store của partner
         const stores = await prisma.store.findMany({
-            where: { ownerId: partnerId },
+            where: {
+                ownerId: partnerId,
+                ...(storeId ? { id: Number(storeId) } : {}),
+            },
             select: { id: true }
         });
 
-        let storeIds = stores.map(s => s.id);
-
-        // Nếu chọn 1 store
-        if (storeId) {
-            storeId = Number(storeId);
-            if (!storeIds.includes(storeId)) {
-                throw new BadrequestException("Store không thuộc partner");
-            }
-            storeIds = [storeId];
+        const storeIds = stores.map(s => s.id);
+        if (storeIds.length === 0) {
+            return { startDate, endDate, data: [] };
         }
 
-        // Build điều kiện thời gian
-        const timeFilter = {};
-        if (startDate) timeFilter.gte = new Date(startDate);
-        if (endDate) timeFilter.lte = new Date(endDate);
+        // 2. Gom doanh thu theo ngày
+        const results = await prisma.$queryRaw`
+            SELECT 
+                DATE(createdAt) AS date,
+                SUM(
+                    CASE 
+                        WHEN type = 'add' THEN points
+                        ELSE 0
+                    END
+                ) AS totalPoints
+            FROM Transaction
+            WHERE storeId IN (${Prisma.join(storeIds)})
+            AND createdAt BETWEEN ${start} AND ${end}
+            GROUP BY DATE(createdAt)
+            ORDER BY DATE(createdAt)
+        `;
 
-        // Lấy transaction type 'add'
-        const transactions = await prisma.transaction.findMany({
-            where: {
-                storeId: { in: storeIds },
-                type: "add",
-                ...(startDate || endDate ? { createdAt: timeFilter } : {})
-            },
-            select: { points: true, createdAt: true }
-        });
-
-        const timeline = {};
-
-        transactions.forEach(t => {
-            const date = new Date(t.createdAt);
-            let key;
-
-            if (type === "day") {
-                key = date.toISOString().split("T")[0]; // YYYY-MM-DD
-            }
-            else if (type === "week") {
-                const oneJan = new Date(date.getFullYear(), 0, 1);
-                const week = Math.ceil((((date - oneJan) / 86400000) + oneJan.getDay() + 1) / 7);
-                key = `${date.getFullYear()}-W${week}`;
-            }
-            else if (type === "month") {
-                key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-            }
-            else {
-                throw new BadrequestException("type phải là: day | week | month");
-            }
-
-            timeline[key] = (timeline[key] || 0) + t.points;
-        });
-
-        return Object.keys(timeline)
-            .sort()
-            .map(key => ({
-                date: key,
-                totalPoints: timeline[key]
-            }));
+        return {
+            startDate,
+            endDate,
+            data: results
+        };
     },
-     addPointsForUser: async ({ partnerId, storeId, identifier }) => {
+    addPointsForUser: async ({ partnerId, storeId, identifier }) => {
 
         // 1. Kiểm tra store thuộc partner + lấy pointRate
         const store = await prisma.store.findFirst({
@@ -404,9 +392,11 @@ export const partnerService = {
                 OR: [
                     { phone: identifier },
                     { zaloId: identifier },
-                    { name: {
-                        contains : identifier.toLowerCase()
-                    } }
+                    {
+                        name: {
+                            contains: identifier.toLowerCase()
+                        }
+                    }
                 ]
             }
         });

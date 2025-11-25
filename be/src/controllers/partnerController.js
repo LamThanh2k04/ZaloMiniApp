@@ -1,3 +1,4 @@
+import { BadrequestException } from "../common/helpers/exception.helper.js"
 import { responseSuccess } from "../common/helpers/response.helper.js"
 import { partnerService } from "../services/partnerService.js"
 
@@ -33,7 +34,7 @@ export const partnerController = {
             const page = Number(req.query.page) || 1
             const keyword = req.query.keyword || ""
             const status = req.query.status || ""
-            const data = await partnerService.getAllStoresPartner(partnerId,keyword,status,page)
+            const data = await partnerService.getAllStoresPartner(partnerId, keyword, status, page)
             const response = responseSuccess(data, "Lấy danh sách cửa hàng của đối tác đó thành công")
             res.status(response.status).json(response)
         } catch (err) {
@@ -41,7 +42,7 @@ export const partnerController = {
             next(err)
         }
     },
-      getAllStoresPartnerName: async (req, res, next) => {
+    getAllStoresPartnerName: async (req, res, next) => {
         try {
             const partnerId = req.user.id
             const data = await partnerService.getAllStoresPartnerName(partnerId)
@@ -111,37 +112,31 @@ export const partnerController = {
         }
     },
     getTopUserPointStore: async (req, res, next) => {
-    try {
-        const partnerId = req.user.id;
-        const storeId = req.query.storeId;
+        try {
+            const partnerId = req.user.id;
+            const storeId = req.query.storeId;
 
-        const data = await partnerService.getTopUserPointStore(partnerId, storeId);
+            const data = await partnerService.getTopUserPointStore(partnerId, storeId);
 
-        const response = responseSuccess(data, "Lấy top user tích điểm thành công");
-        res.status(response.status).json(response);
+            const response = responseSuccess(data, "Lấy top user tích điểm thành công");
+            res.status(response.status).json(response);
 
-    } catch (err) {
-        console.error("Lỗi khi lấy top user:", err);
-        next(err);
-    }
-},
+        } catch (err) {
+            console.error("Lỗi khi lấy top user:", err);
+            next(err);
+        }
+    },
 
     getPointRevenueTimeline: async (req, res, next) => {
     try {
         const partnerId = req.user.id;
 
-        const type = req.query.type;          // day | week | month
-        const storeId = req.query.storeId;    // optional
+        const storeId = req.query.storeId;     // optional
         const startDate = req.query.startDate;
         const endDate = req.query.endDate;
 
-        if (!type) {
-            throw new BadrequestException("type là bắt buộc: day | week | month");
-        }
-
         const data = await partnerService.getPointRevenueTimeline(
             partnerId,
-            type,
             storeId,
             startDate,
             endDate
@@ -159,5 +154,7 @@ export const partnerController = {
         next(err);
     }
 }
+
+
 
 }
