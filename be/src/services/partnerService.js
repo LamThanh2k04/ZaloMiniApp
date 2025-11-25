@@ -207,7 +207,7 @@ export const partnerService = {
 
         const whereCondition = {
             reward: { storeId: { in: storeIds } },
-            status: status // "unused" | "used"
+           ...(status ? { status } : {})
         };
 
         const userVouchers = await prisma.userVoucher.findMany({
@@ -233,7 +233,7 @@ export const partnerService = {
         };
     },
     getTotal: async (partnerId) => {
-        const stores = await prisma.store.count({
+        const stores = await prisma.store.findMany({
             where: { ownerId: partnerId }
         })
         const storeIds = stores.map(s => s.id);
@@ -380,6 +380,84 @@ export const partnerService = {
                 date: key,
                 totalPoints: timeline[key]
             }));
+    },
+     addPointsForUser: async ({ partnerId, storeId, identifier }) => {
+
+        // 1. Kiểm tra store thuộc partner + lấy pointRate
+        const store = await prisma.store.findFirst({
+            where: { id: storeId, ownerId: partnerId },
+            select: {
+                id: true,
+                name: true,
+                pointRate: true
+            }
+        });
+
+        if (!store) {
+            throw new BadrequestException("Bạn không có quyền cộng điểm cho cửa hàng này");
+        }
+
+        const pointsToAdd = Math.floor(store.pointRate);
+
+        const user = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { phone: identifier },
+                    { zaloId: identifier },
+                    { name: {
+                        contains : identifier.toLowerCase()
+                    } }
+                ]
+            }
+        });
+
+        if (!user) {
+            throw new NotFoundException("Không tìm thấy người dùng");
+        }
+        const updatedUser = await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                totalPoints: {
+                    increment: pointsToAdd
+                }
+            }
+        });
+        await prisma.transaction.create({
+            data: {
+                userId: user.id,
+                storeId: storeId,
+                points: pointsToAdd,
+                type: "add"
+            }
+        });
+
+        const newLevel = await prisma.membershipLevel.findFirst({
+            where: {
+                minPoints: { lte: updatedUser.totalPoints },
+                OR: [
+                    { maxPoints: null },
+                    { maxPoints: { gte: updatedUser.totalPoints } }
+                ]
+            }
+        });
+
+        if (newLevel && newLevel.id !== updatedUser.levelId) {
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { levelId: newLevel.id }
+            });
+        }
+
+        return {
+            message: `Đã cộng ${pointsToAdd} điểm cho người dùng`,
+            storePointRate: store.pointRate,
+            user: {
+                id: user.id,
+                name: user.name,
+                phone: user.phone,
+                totalPoints: updatedUser.totalPoints
+            }
+        };
     }
 
 
