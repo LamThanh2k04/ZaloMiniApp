@@ -336,6 +336,8 @@ export const partnerService = {
         const stores = await prisma.store.findMany({
             where: {
                 ownerId: partnerId,
+                status : "approved",
+                isActive: true,
                 ...(storeId ? { id: Number(storeId) } : {}),
             },
             select: { id: true }
