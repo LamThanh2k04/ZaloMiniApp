@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { getUserVouchersByStatus } from '../../../common/api/admin/voucherService';
 import { Select } from 'antd';
 import { SquarePen, PackagePlus } from 'lucide-react';
+import { getUserVouchersByStatus } from '../../../common/api/partner/voucherService';
 
 function Voucher() {
     const [userUsedVoucher, setUserUsedVoucher] = useState([]);
@@ -31,12 +31,7 @@ function Voucher() {
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">Quản lý người dùng đã sử dụng voucher của cửa hàng</h2>
                 <div className="flex flex-col md:flex-row gap-4 items-center">
-                    <button
-                        className="px-4 py-2 bg-[#7f5af0] cursor-pointer text-white rounded-xl hover:bg-[#6e4ee3] transition"
-                    // onClick={openCreateModal}
-                    >
-                        <PackagePlus />
-                    </button>
+
                     <Select
                         placeholder="Trạng thái"
                         allowClear

@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { Select } from "antd";
-import { getAllStoresPartner } from "../../../common/api/admin/storeService";
+import { Select, Modal } from 'antd';
 import { useDebounce } from "use-debounce";
-import { SquarePen, PackagePlus } from 'lucide-react';
+import { SquarePen, HousePlus } from 'lucide-react';
+import { getAllStoresPartner } from "../../../common/api/partner/storeService";
+import FormCreateStore from "./FormCreateStore";
+import FormUpdateStore from "./FormUpdateStore";
 
 function Store() {
     const [stores, setStores] = useState([]);
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState();
+    const [modalCreate, setModalCreate] = useState(false);
+    const [modalUpdate, setModalUpdate] = useState(false);
+    const [selectedStore, setSelectedStore] = useState(null);
     const [storeName, setStoreName] = useState("");
     const [debounceStoreName] = useDebounce(storeName, 500);
     const [selectedStatus, setSelectedStatus] = useState("");
@@ -40,6 +45,16 @@ function Store() {
             console.log(error);
         }
     };
+    const openCreateModal = () => setModalCreate(true);
+    const closeCreateModal = () => setModalCreate(false);
+    const openUpdateModal = (store) => {
+        setSelectedStore(store);
+        setModalUpdate(true);
+    };
+    const closeUpdateModal = () => {
+        setSelectedStore(null);
+        setModalUpdate(false);
+    };
     useEffect(() => {
         fetchAllStoresPartner();
     }, [page, debounceStoreName, selectedStatus]);
@@ -53,9 +68,9 @@ function Store() {
                 <div className="flex flex-col md:flex-row gap-4 items-center">
                     <button
                         className="px-4 py-2 bg-[#7f5af0] cursor-pointer text-white rounded-xl hover:bg-[#6e4ee3] transition"
-                    // onClick={openCreateModal}
+                        onClick={openCreateModal}
                     >
-                        <PackagePlus />
+                        <HousePlus />
                     </button>
                     <Select
                         placeholder="Trạng thái"
@@ -107,7 +122,7 @@ function Store() {
                 <table className="min-w-full bg-white">
                     <thead className="bg-gray-100 border-b border-gray-200">
                         <tr>
-                            {["Logo", "Tên cửa hàng", "Địa chỉ", "Điểm", "Chủ sở hữu", "Trạng thái", "Hành động"].map(
+                            {["Logo", "Tên cửa hàng", "Địa chỉ", "Điểm", "Chủ sở hữu", "Trạng thái duyệt", "Trạng thái hoạt động", "Hành động"].map(
                                 (header) => (
                                     <th key={header} className="px-5 py-3 text-left font-semibold text-gray-700">
                                         {header}
@@ -141,9 +156,22 @@ function Store() {
                                     <td className="px-5 py-3">
                                         <span className={STATUS_UI[s.status]?.class}>{STATUS_UI[s.status]?.label}</span>
                                     </td>
-
+                                    <td className="px-4 py-2">
+                                        {s.isActive ? (
+                                            <span className="inline-block px-3 py-1 text-white text-sm font-medium bg-green-500 rounded-full shadow-sm">
+                                                Còn hoạt động
+                                            </span>
+                                        ) : (
+                                            <span className="inline-block px-3 py-1 text-white text-sm font-medium bg-red-500 rounded-full shadow-sm">
+                                                Ngưng hoạt động
+                                            </span>
+                                        )}
+                                    </td>
                                     <td className="px-5 py-3">
-                                        <button className="flex items-center gap-2 px-3 py-1.5 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition">
+                                        <button
+                                            className="flex items-center gap-2 px-3 py-1.5 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition"
+                                            onClick={() => openUpdateModal(s)}
+                                        >
                                             <SquarePen className="w-4 h-4" />
                                             <span className="hidden sm:inline">Chỉnh sửa</span>
                                         </button>
@@ -153,6 +181,31 @@ function Store() {
                         )}
                     </tbody>
                 </table>
+                <Modal
+                    open={modalCreate}
+                    onCancel={closeCreateModal}
+                    footer={null}
+                >
+                    <FormCreateStore
+                        onSuccess={() => {
+                            fetchAllStoresPartner();
+                            closeCreateModal();
+                        }}
+                    />
+                </Modal>
+                <Modal
+                    open={modalUpdate}
+                    onCancel={closeUpdateModal}
+                    footer={null}
+                >
+                    {selectedStore && (
+                        <FormUpdateStore
+                            storeData={selectedStore}
+                            onSuccess={fetchAllStoresPartner}
+                            onCancel={closeUpdateModal}
+                        />
+                    )}
+                </Modal>
             </div>
 
             {/* PAGINATION */}

@@ -1,13 +1,19 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { getRewardStore } from '../../../common/api/admin/rewardService';
 import { useDebounce } from 'use-debounce';
-import { Select } from 'antd';
+import { Select, Modal } from 'antd';
 import { SquarePen, PackagePlus } from 'lucide-react';
+import FormCreateRewardPartner from './FormCreateReward';
+import { getRewardStore, getAllStoresPartnerName } from '../../../common/api/partner/rewardService';
+import FormUpdateReward from './FormUpdateReward';
 
 function RewardPartner() {
     const [reward, setReward] = useState([]);
+    const [store, setStore] = useState([]);
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState();
+    const [modalCreate, setModalCreate] = useState(false);
+    const [modalUpdate, setModalUpdate] = useState(false);
+    const [selectedReward, setSelectedReward] = useState(null);
     const [reWardName, setRewardName] = useState("");
     const [stores, setStores] = useState([]);
     const [storeId, setStoreId] = useState(0);
@@ -21,11 +27,30 @@ function RewardPartner() {
         } catch (error) {
             console.log(error);
         }
+    };
+    const fetchAllStoresPartnerName = async () => {
+        try {
+            const res = await getAllStoresPartnerName();
+            setStore(res.data.data.stores);
+            console.log("Lấy danh sách cửa hàng: ", res);
+        } catch (error) {
+            console.log(error);
+        }
     }
     const handleSearchChange = (e) => {
         setRewardName(e.target.value);
         setPage(1);
-    }
+    };
+    const openCreateModal = () => setModalCreate(true);
+    const closeCreateModal = () => setModalCreate(false);
+    const openUpdateModal = (reward) => {
+        setSelectedReward(reward);
+        setModalUpdate(true);
+    };
+    const closeUpdateModal = () => {
+        setSelectedReward(null);
+        setModalUpdate(false);
+    };
     useEffect(() => {
         if (reward.length > 0) {
             const uniqueStores = reward
@@ -36,7 +61,10 @@ function RewardPartner() {
     }, [reward]);
     useEffect(() => {
         fetchRewardStore();
-    }, [storeId, debounceRewardName, page])
+    }, [storeId, debounceRewardName, page]);
+    useEffect(() => {
+        fetchAllStoresPartnerName();
+    }, []);
     return (
         <div className="p-6 bg-white rounded-xl shadow-md border border-gray-200">
 
@@ -46,7 +74,7 @@ function RewardPartner() {
                 <div className="flex flex-col md:flex-row gap-4 items-center">
                     <button
                         className="px-4 py-2 bg-[#7f5af0] cursor-pointer text-white rounded-xl hover:bg-[#6e4ee3] transition"
-                    // onClick={openCreateModal}
+                        onClick={openCreateModal}
                     >
                         <PackagePlus />
                     </button>
@@ -138,7 +166,10 @@ function RewardPartner() {
                                         )}
                                     </td>
                                     <td className="px-5 py-3">
-                                        <button className="flex items-center gap-2 px-3 py-1.5 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition">
+                                        <button
+                                            className="flex items-center gap-2 px-3 py-1.5 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition"
+                                            onClick={() => openUpdateModal(r)}
+                                        >
                                             <SquarePen className="w-4 h-4" />
                                             <span className="hidden sm:inline">Chỉnh sửa</span>
                                         </button>
@@ -148,6 +179,34 @@ function RewardPartner() {
                         )}
                     </tbody>
                 </table>
+                <Modal
+                    open={modalCreate}
+                    onCancel={closeCreateModal}
+                    footer={null}
+                >
+                    <FormCreateRewardPartner
+                        onSuccess={() => {
+                            fetchRewardStore();
+                            closeCreateModal();
+                        }}
+                        store={store}
+                    />
+                </Modal>
+                <Modal
+                    open={modalUpdate}
+                    onCancel={closeUpdateModal}
+                    footer={null}
+                >
+                    {selectedReward && (
+                        <FormUpdateReward
+                            rewardData={selectedReward}
+                            onSuccess={fetchRewardStore}
+                            onCancel={closeUpdateModal}
+                            store={store}
+
+                        />
+                    )}
+                </Modal>
             </div>
 
             {/* PAGINATION */}
