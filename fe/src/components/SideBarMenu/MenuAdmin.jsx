@@ -6,14 +6,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import { removeUser } from '../../common/redux/userSlice';
 import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
-const { confirm } = Modal;
 function MenuAdmin() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { user } = useSelector((state) => state.userSlice);
-    const location = useLocation(); // hook để lấy path hiện tại
-
-    // Mapping đường dẫn -> key menu
+    const location = useLocation();
+    const { confirm } = Modal;
     const pathKeyMap = {
         '/admin/dashboard': 'g1',
         '/admin/dashboard/overview': 'g1',
@@ -26,7 +24,6 @@ function MenuAdmin() {
         '/admin/dashboard/member-level': '7',
         '/admin/dashboard/reward': '8',
     };
-
     const items = [
         {
             key: 'sub1',
