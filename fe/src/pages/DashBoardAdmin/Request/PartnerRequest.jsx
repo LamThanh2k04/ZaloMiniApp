@@ -106,21 +106,35 @@ function PartnerRequest() {
                                             {STATUS_UI[pr.status]?.label}
                                         </span>
                                     </td>
-                                    <td className="px-4 py-2 flex items-center justify-start gap-2">
-                                        <button
-                                            onClick={() => handleApprove(pr.id)}
-                                            className="px-3 py-1 bg-green-500 text-white transition cursor-pointer rounded hover:bg-green-600"
-                                        >
-                                            Chấp nhận
-                                        </button>
+                                    <td className="px-4 py-2">
+                                        {pr.status === "pending" ? (
+                                            <div className="flex items-center gap-3">
+                                                <button
+                                                    onClick={() => handleApprove(pr.id)}
+                                                    className="flex items-center gap-2 px-4 py-2 rounded-lg 
+                           bg-green-500 text-white font-medium shadow 
+                           hover:bg-green-600 transition-all duration-200"
+                                                >
+                                                    ✓ Chấp nhận
+                                                </button>
 
-                                        <button
-                                            onClick={() => handleReject(pr.id)}
-                                            className="px-3 py-1 bg-red-500 text-white transition cursor-pointer rounded hover:bg-red-600"
-                                        >
-                                            Từ chối
-                                        </button>
+                                                <button
+                                                    onClick={() => handleReject(pr.id)}
+                                                    className="flex items-center gap-2 px-4 py-2 rounded-lg 
+                           bg-red-500 text-white font-medium shadow 
+                           hover:bg-red-600 transition-all duration-200"
+                                                >
+                                                    ✕ Từ chối
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="inline-block px-3 py-1 rounded-full text-sm font-semibold 
+                        bg-green-100 text-green-700 shadow">
+                                                Yêu cầu đã được duyệt
+                                            </div>
+                                        )}
                                     </td>
+
                                 </tr>
                             ))
                         )}

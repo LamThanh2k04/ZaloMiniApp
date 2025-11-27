@@ -13,6 +13,10 @@ import MemberLevel from './pages/DashBoardAdmin/MemberLevel/MemberLevel';
 import UserUsedPointCode from './pages/DashBoardAdmin/PointCode/UserUsedPointCode';
 import Reward from './pages/DashBoardAdmin/Reward/Reward';
 import Overview from './pages/DashBoardAdmin/Overview/Overview';
+import OverView from './pages/DashBoardPartner/OverView/OverView';
+import Store from './pages/DashBoardPartner/Store/Store';
+import RewardPartner from './pages/DashBoardPartner/Reward/Reward';
+import Voucher from './pages/DashBoardPartner/Voucher/Voucher';
 function App() {
   return (
     <>
@@ -47,7 +51,13 @@ function App() {
             <Route path='user-pointcode' element={<UserUsedPointCode />} />
             <Route path='reward' element={<Reward />} />
           </Route>
-          <Route path='/partner/dashboard' element={<DashBoardPartner />} />
+          <Route path='/partner/dashboard' element={<DashBoardPartner />} >
+            <Route index element={<OverView />} />
+            <Route path='overview' element={<OverView />} />
+            <Route path='store' element={<Store />} />
+            <Route path='reward-partner' element={<RewardPartner />} />
+            <Route path='voucher' element={<Voucher />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </>
