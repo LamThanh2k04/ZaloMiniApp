@@ -48,7 +48,7 @@ function FormUpdateStore({ storeData, onSuccess, onCancel }) {
                         className="w-20 h-20 rounded-lg object-cover shadow"
                     />
                     <div className="text-sm text-gray-600">
-                        Logo hiện tại của cửa hàng
+                        {storeData.name}
                     </div>
                 </div>
             </Form.Item>
