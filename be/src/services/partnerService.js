@@ -3,14 +3,6 @@ import prisma from "../common/prisma/initPrisma.js"
 import { nanoid } from "nanoid";
 import { Prisma } from "@prisma/client";
 
-import {
-    startOfDay,
-    endOfDay,
-    startOfWeek,
-    endOfWeek,
-    startOfMonth,
-    endOfMonth,
-} from "date-fns";
 export const partnerService = {
     createStore: async (partnerId, data, logo) => {
         const { name, address, pointRate } = data
@@ -131,7 +123,7 @@ export const partnerService = {
         }
     },
     updateRewardStore: async (rewardStoreId, data) => {
-        const { name, description, pointsNeeded, quantity, expiredAt, isActive } = data
+        const { name, description, pointsNeeded, quantity, expiredAt, isActive,storeId } = data
         const rewardGlobal = await prisma.reward.findUnique({
             where: { id: Number(rewardStoreId) }
         })
@@ -149,6 +141,7 @@ export const partnerService = {
                 isActive === 1 ||
                 isActive === "1";
         }
+        if(storeId) updateData.storeId = Number(storeId)
         const updated = await prisma.reward.update({
             where: { id: Number(rewardStoreId) },
             data: updateData
@@ -182,6 +175,7 @@ export const partnerService = {
                     ],
                 }
                 : {}),
+                ...(storeId ? { storeId : Number(storeId) } : {})
         };
 
         const rewards = await prisma.reward.findMany({
