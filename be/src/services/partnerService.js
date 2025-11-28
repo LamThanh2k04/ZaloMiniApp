@@ -123,7 +123,7 @@ export const partnerService = {
         }
     },
     updateRewardStore: async (rewardStoreId, data) => {
-        const { name, description, pointsNeeded, quantity, expiredAt, isActive,storeId } = data
+        const { name, description, pointsNeeded, quantity, expiredAt, isActive, storeId } = data
         const rewardGlobal = await prisma.reward.findUnique({
             where: { id: Number(rewardStoreId) }
         })
@@ -141,7 +141,7 @@ export const partnerService = {
                 isActive === 1 ||
                 isActive === "1";
         }
-        if(storeId) updateData.storeId = Number(storeId)
+        if (storeId) updateData.storeId = Number(storeId)
         const updated = await prisma.reward.update({
             where: { id: Number(rewardStoreId) },
             data: updateData
@@ -175,7 +175,7 @@ export const partnerService = {
                     ],
                 }
                 : {}),
-                ...(storeId ? { storeId : Number(storeId) } : {})
+            ...(storeId ? { storeId: Number(storeId) } : {})
         };
 
         const rewards = await prisma.reward.findMany({
@@ -322,28 +322,47 @@ export const partnerService = {
     },
 
     getPointRevenueTimeline: async (partnerId, storeId, startDate, endDate) => {
+        try {
+            // 1. Xử lý Date an toàn (Fallback nếu null/undefined)
+            // Nếu không có endDate => lấy thời điểm hiện tại
+            const end = endDate ? new Date(endDate) : new Date();
 
-        const start = new Date(startDate);
-        const end = new Date(endDate);
+            // Nếu không có startDate => lùi lại 30 ngày từ endDate
+            let start;
+            if (startDate) {
+                start = new Date(startDate);
+            } else {
+                const temp = new Date(end);
+                temp.setDate(temp.getDate() - 30);
+                start = temp;
+            }
 
-        // 1. Lấy danh sách store của partner
-        const stores = await prisma.store.findMany({
-            where: {
+            // 2. Lấy danh sách store ID
+            // Parse storeId sang Number nếu nó là string, hoặc bỏ qua nếu null
+            const storeWhere = {
                 ownerId: partnerId,
-                status : "approved",
+                status: "approved",
                 isActive: true,
-                ...(storeId ? { id: Number(storeId) } : {}),
-            },
-            select: { id: true }
-        });
+            };
 
-        const storeIds = stores.map(s => s.id);
-        if (storeIds.length === 0) {
-            return { startDate, endDate, data: [] };
-        }
+            if (storeId && storeId !== 'null' && storeId !== 'undefined') {
+                storeWhere.id = Number(storeId);
+            }
 
-        // 2. Gom doanh thu theo ngày
-        const results = await prisma.$queryRaw`
+            const stores = await prisma.store.findMany({
+                where: storeWhere,
+                select: { id: true }
+            });
+
+            const storeIds = stores.map(s => s.id);
+
+            // Nếu không có store nào thì trả về rỗng luôn
+            if (storeIds.length === 0) {
+                return { startDate: start, endDate: end, data: [] };
+            }
+
+            // 3. Query RAW
+            const results = await prisma.$queryRaw`
             SELECT 
                 DATE(createdAt) AS date,
                 SUM(
@@ -359,11 +378,23 @@ export const partnerService = {
             ORDER BY DATE(createdAt)
         `;
 
-        return {
-            startDate,
-            endDate,
-            data: results
-        };
+            // 4. FIX LỖI 500: Convert BigInt sang Number
+            // Prisma trả về BigInt cho SUM, JSON không hiểu BigInt nên phải ép kiểu
+            const formattedData = results.map(item => ({
+                date: item.date, // Giữ nguyên date object hoặc string tùy DB
+                totalPoints: Number(item.totalPoints) // <--- QUAN TRỌNG NHẤT
+            }));
+
+            return {
+                startDate: start,
+                endDate: end,
+                data: formattedData
+            };
+
+        } catch (error) {
+            console.error("Lỗi getPointRevenueTimeline:", error);
+            throw error; // Ném lỗi để Controller bắt được
+        }
     },
     addPointsForUser: async ({ partnerId, storeId, identifier }) => {
 

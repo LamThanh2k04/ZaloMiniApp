@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Select, DatePicker } from 'antd';
+import { Select, DatePicker, Spin, Row, Col } from 'antd';
 import DashboardStats from './DashboardStats';
 import PointLineChart from './PointLineChart';
 import TopUserBarChart from './TopUserBarChart';
@@ -101,12 +101,24 @@ export default function OverView() {
                         allowClear
                     />
                 </div>
-                <PointLineChart data={lineChart} />
+                <Spin spinning={loading}>
+                    <Row gutter={[16, 16]}>
+                        <Col span={24}>
+                            <h3 className="text-lg font-bold mb-4">Biểu đồ biến động điểm</h3>
+                            {/* Truyền data vào Component biểu đồ đường */}
+                            <PointLineChart data={lineChart} />
+                        </Col>
+                    </Row>
+                </Spin>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <TopUserBarChart data={topUsers} />
-                <MemberLevelPieChart data={memberLevels} />
+                <Spin spinning={loading}>
+                    <TopUserBarChart data={topUsers} />
+                </Spin>
+                <Spin spinning={loading}>
+                    <MemberLevelPieChart data={memberLevels} />
+                </Spin>
             </div>
         </div>
     );
