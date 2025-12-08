@@ -1,10 +1,8 @@
 import { openMiniApp } from "zmp-sdk";
 import { Box, Button, Icon, Page, Text } from "zmp-ui";
-
 import Clock from "../components/clock";
 import Logo from "../components/logo";
 import bg from "../static/bg.svg";
-
 function HomePage() {
   return (
     <Page

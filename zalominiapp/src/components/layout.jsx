@@ -6,8 +6,7 @@ import {
   SnackbarProvider,
   ZMPRouter,
 } from "zmp-ui";
-
-import HomePage from "../pages/index";
+import Login from "../pages/Login";
 
 const Layout = () => {
   return (
@@ -15,7 +14,7 @@ const Layout = () => {
       <SnackbarProvider>
         <ZMPRouter>
           <AnimationRoutes>
-            <Route path="/" element={<HomePage />}></Route>
+            <Route path="/" element={<Login />}></Route>
           </AnimationRoutes>
         </ZMPRouter>
       </SnackbarProvider>

@@ -54,7 +54,7 @@ function Voucher() {
                 <table className="min-w-full bg-white">
                     <thead className="bg-gray-100 border-b border-gray-200">
                         <tr>
-                            {["Tên người dùng", "Email", "Số điện thoại", "Voucher", "Mã code", "Voucher cửa hàng", "Trạng thái", "Hành động"].map(
+                            {["Tên người dùng", "Email", "Số điện thoại", "Voucher", "Mã code", "Voucher cửa hàng", "Trạng thái"].map(
                                 (header) => (
                                     <th key={header} className="px-5 py-3 text-left font-semibold text-gray-700">
                                         {header}
@@ -92,12 +92,6 @@ function Voucher() {
                                                 Đã sử dụng
                                             </span>
                                         )}
-                                    </td>
-                                    <td className="px-5 py-3">
-                                        <button className="flex items-center gap-2 px-3 py-1.5 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition">
-                                            <SquarePen className="w-4 h-4" />
-                                            <span className="hidden sm:inline">Chỉnh sửa</span>
-                                        </button>
                                     </td>
                                 </tr>
                             ))
