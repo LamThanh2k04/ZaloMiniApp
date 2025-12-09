@@ -1,21 +1,14 @@
-const initialState = {
-    isAuthenticated: false,
-    user: null,
-    points: 0,
-};
+import { atom } from "recoil";
 
-const userReducer = (state = initialState, action) => {
-    switch (action.type) {
-        case "SET_USER":
-            return {
-                ...state,
-                isAuthenticated: true,
-                user: action.payload,
-                points: action.payload.points,
-            };
-        default:
-            return state;
-    }
-};
-
-export default userReducer;
+export const userState = atom({
+    key: "userState", // ID duy nhất cho atom này (bắt buộc)
+    default: {
+        isAuthenticated: false, // Cờ kiểm tra xem đã đăng nhập chưa
+        id: null,
+        zaloId: "",
+        name: "Người dùng",
+        avatar: "",
+        points: 0,
+        rank: "Member"
+    },
+});

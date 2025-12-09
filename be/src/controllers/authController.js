@@ -4,6 +4,8 @@ import { authService } from "../services/authService.js"
 export const authController = {
     loginZalo: async (req, res, next) => {
         try {
+            console.log("👉 Headers nhận được:", req.headers['content-type']);
+            console.log("👉 Body nhận được:", req.body);
             const data = await authService.loginZalo(req.body)
             const response = responseSuccess(data, "Đăng nhập người dùng bằng zalo thành công")
             res.status(response.status).json(response)

@@ -1,7 +1,7 @@
 // React core
 import React from "react";
 import { createRoot } from "react-dom/client";
-
+import { RecoilRoot } from "recoil";
 // ZaUI stylesheet
 import "zmp-ui/zaui.css";
 
@@ -20,4 +20,10 @@ if (!window.APP_CONFIG) {
 // Mount the app
 import Layout from "./components/layout";
 const root = createRoot(document.getElementById("app"));
-root.render(React.createElement(Layout));
+root.render(
+  React.createElement(
+    RecoilRoot,
+    null,
+    React.createElement(Layout)
+  )
+);

@@ -1,8 +1,7 @@
-import { getAuthCode } from "zmp-sdk";
 import { https } from "./config";
 
-export const loginUserZalo = async () => {
-    const { code } = await getAuthCode();
-    console.log("Zalo login code ===>", code);
-    return https.post("/api/auth/loginZalo", { code });
+export const loginUserZalo = (token) => {
+    // Key ở đây phải là 'accessToken' để khớp với: const { accessToken } = data ở Backend
+    console.log("Token: ", token);
+    return https.post("/api/auth/loginZalo", { accessToken: token });
 };
