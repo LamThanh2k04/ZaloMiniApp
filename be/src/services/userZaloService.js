@@ -6,8 +6,8 @@ export const userZaloService = {
     getInfoUserZalo: async (userZaloId) => {
         const userZalo = await prisma.user.findUnique({
             where: { id: Number(userZaloId) },
-            include : {
-            level : true
+            include: {
+                level: true
             }
         })
         return {
@@ -20,7 +20,7 @@ export const userZaloService = {
         if (name) updateData.name = String(name)
         if (email) updateData.email = String(email)
         if (phone) {
-            if (!/^\d{10}$/.test(phoneNumber)) {
+            if (!/^\d{10}$/.test(phone)) {
                 throw new BadrequestException("Số điện thoại phải có 10 số. Vui lòng nhập lại.");
             }
             updateData.phone = String(phone)
@@ -76,15 +76,15 @@ export const userZaloService = {
     // },
     listRewardsByStoreId: async (storeId) => {
         const rewards = await prisma.reward.findMany({
-            where: {storeId : Number(storeId)}
+            where: { storeId: Number(storeId) }
         })
         return {
             rewards
         }
     },
-    listRewardIsGlobal : async () => {
+    listRewardIsGlobal: async () => {
         const rewards = await prisma.reward.findMany({
-            where : {isGlobal : true}
+            where: { isGlobal: true }
         })
         return {
             rewards
@@ -305,12 +305,12 @@ export const userZaloService = {
     },
     getAllStore: async () => {
         const stores = await prisma.store.findMany({
-            where: { isActive: true, status : "approved" },
-            select : {
-                id : true,
-                name : true,
-                logo : true,
-                address : true
+            where: { isActive: true, status: "approved" },
+            select: {
+                id: true,
+                name: true,
+                logo: true,
+                address: true
             }
         })
         return {

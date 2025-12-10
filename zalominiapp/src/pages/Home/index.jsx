@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
-// 1. IMPORT useSnackbar TỪ zmp-ui
 import { Page, Box, Text, Avatar, Icon, useNavigate, Modal, useSnackbar } from "zmp-ui";
 import { useRecoilState } from "recoil";
 import { userState } from "../../state/user";
 import { userApi } from "../../api/userService";
 import { rewardApi } from "../../api/rewardService";
-import { FaCoffee, FaGift, FaHome, FaQrcode, FaUser, FaStore } from "react-icons/fa";
+import { FaCoffee, FaGift, FaHome, FaQrcode, FaUser, FaStore, FaMapMarkerAlt } from "react-icons/fa";
 
 // Ảnh fallback
 const DEFAULT_IMG_HOT = "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=400&q=80";
@@ -21,46 +20,90 @@ const HomePage = () => {
     const [hotDeals, setHotDeals] = useState([]);
     const [vouchers, setVouchers] = useState([]);
     const navigate = useNavigate();
-
-    // 2. KHỞI TẠO SNACKBAR (TOAST)
     const { openSnackbar } = useSnackbar();
+
+    // --- STATE CHO STORE ---
+    const [stores, setStores] = useState([]);
+    const [selectedStoreId, setSelectedStoreId] = useState(null);
+    const [loadingVoucher, setLoadingVoucher] = useState(false);
 
     // State cho Modal & Loading
     const [confirmModalVisible, setConfirmModalVisible] = useState(false);
     const [selectedReward, setSelectedReward] = useState(null);
     const [isRedeeming, setIsRedeeming] = useState(false);
 
-    // --- LOAD DỮ LIỆU ---
-    const fetchData = async () => {
+    // --- 1. LOAD DỮ LIỆU CHUNG ---
+    const fetchInitialData = async () => {
         try {
-            const [resUser, resGlobal, resStore] = await Promise.all([
+            const [resUser, resGlobal, resStores] = await Promise.all([
                 userApi.getInfo(),
                 rewardApi.getGlobalRewards(),
-                rewardApi.getRewardsByStore(1).catch(() => ({ data: { data: { rewards: [] } } }))
+                rewardApi.getAllStores().catch((err) => {
+                    console.log("Lỗi API Store:", err);
+                    return { data: { data: { stores: [] } } }; // Trả về cấu trúc giả để không lỗi
+                })
             ]);
 
+            // Cập nhật User
             if (resUser.data?.data?.userZalo) {
                 setUser(prev => ({ ...prev, ...resUser.data.data.userZalo }));
             }
-            setHotDeals(resGlobal.data?.data?.rewards || []);
-            setVouchers(resStore.data?.data?.rewards || []);
+
+            // Cập nhật Hot Deal
+            const listGlobal = resGlobal.data?.data?.rewards;
+            setHotDeals(Array.isArray(listGlobal) ? listGlobal : []);
+
+            // --- SỬA LỖI TẠI ĐÂY: Truy cập sâu vào .stores ---
+            // Log cũ: data -> data -> stores
+            const rawStoreData = resStores.data?.data?.stores;
+            const storeList = Array.isArray(rawStoreData) ? rawStoreData : [];
+
+            console.log("Danh sách cửa hàng đã xử lý:", storeList); // Kiểm tra lại lần nữa
+            setStores(storeList);
+
+            // Mặc định chọn store đầu tiên
+            if (storeList.length > 0) {
+                setSelectedStoreId(storeList[0].id);
+            }
+
         } catch (error) {
-            console.log("Lỗi tải dữ liệu:", error);
+            console.log("Lỗi tải dữ liệu chung:", error);
         }
     };
 
     useEffect(() => {
-        fetchData();
+        fetchInitialData();
     }, []);
 
-    // --- XỬ LÝ CLICK ĐỔI QUÀ ---
+    // --- 2. LOAD VOUCHER KHI STORE ID THAY ĐỔI ---
+    useEffect(() => {
+        const fetchVouchersByStore = async () => {
+            if (!selectedStoreId) return;
+
+            setLoadingVoucher(true);
+            try {
+                const res = await rewardApi.getRewardsByStore(selectedStoreId);
+                const list = res.data?.data?.rewards;
+                setVouchers(Array.isArray(list) ? list : []);
+            } catch (error) {
+                console.log("Lỗi tải voucher theo store:", error);
+                setVouchers([]);
+            } finally {
+                setLoadingVoucher(false);
+            }
+        };
+
+        fetchVouchersByStore();
+    }, [selectedStoreId]);
+
+
+    // --- XỬ LÝ ĐỔI QUÀ ---
     const handleRedeemClick = (reward) => {
         if ((user.totalPoints || 0) < reward.pointsNeeded) {
-            // 3. THAY ALERT BẰNG SNACKBAR (Lỗi thiếu điểm)
             openSnackbar({
                 icon: true,
                 text: `Thiếu điểm! Cần thêm ${reward.pointsNeeded - (user.totalPoints || 0)} điểm.`,
-                type: "error", // Màu đỏ
+                type: "error",
                 duration: 3000,
             });
             return;
@@ -69,36 +112,24 @@ const HomePage = () => {
         setConfirmModalVisible(true);
     };
 
-    // --- XỬ LÝ GỌI API ĐỔI QUÀ ---
     const handleConfirmRedeem = async () => {
         if (!selectedReward) return;
         setIsRedeeming(true);
-
         try {
-            // Gọi API thật
             await rewardApi.redeemReward(selectedReward.id);
-
-            // Cập nhật điểm ngay lập tức
             const newPoints = (user.totalPoints || 0) - selectedReward.pointsNeeded;
             setUser(prev => ({ ...prev, totalPoints: newPoints }));
-
             setConfirmModalVisible(false);
-
-            // 4. THAY ALERT BẰNG SNACKBAR (Thành công)
             openSnackbar({
                 icon: true,
                 text: `Đổi "${selectedReward.name}" thành công!`,
-                type: "success", // Màu xanh
+                type: "success",
                 duration: 3000,
             });
-
         } catch (error) {
             console.log("Lỗi đổi quà:", error);
             const errorMsg = error.response?.data?.message || "Có lỗi kết nối, vui lòng thử lại.";
-
             setConfirmModalVisible(false);
-
-            // 5. THAY ALERT BẰNG SNACKBAR (Lỗi API)
             openSnackbar({
                 icon: true,
                 text: errorMsg,
@@ -112,16 +143,16 @@ const HomePage = () => {
 
     return (
         <Page className="bg-gray-100 pb-24 relative">
-
-            {/* HEADER & USER INFO */}
+            {/* HEADER */}
             <div className="bg-red-800 h-48 relative overflow-hidden">
                 <div className="absolute right-[-20px] top-[-20px] w-40 h-40 border-[10px] border-white opacity-10 rounded-full"></div>
                 <div className="absolute right-10 top-[-40px] w-60 h-60 border-[15px] border-white opacity-10 rounded-full"></div>
-                <Box className="p-4 pt-8 text-white">
+                <Box className="p-4 pt-20 text-white">
                     <Text.Title size="xLarge" className="font-bold uppercase tracking-wider">POINTHUB REWARDS</Text.Title>
                 </Box>
             </div>
 
+            {/* USER INFO */}
             <Box className="px-4 -mt-20 relative z-10">
                 <div className="bg-white rounded-xl shadow-lg p-4">
                     <div className="flex justify-between items-start">
@@ -149,11 +180,8 @@ const HomePage = () => {
                     </div>
                     <Text size="small" className="text-gray-500">Tất cả {'>'}</Text>
                 </div>
-
                 <div className="flex gap-3 overflow-x-auto pb-4 pr-4 scrollbar-hide">
-                    {hotDeals.length === 0 && <Text className="text-gray-400 italic text-xs pl-2">Đang tải ưu đãi...</Text>}
-
-                    {hotDeals.map((item) => (
+                    {Array.isArray(hotDeals) && hotDeals.map((item) => (
                         <div key={item.id} className="min-w-[160px] w-[160px] bg-white rounded-lg shadow-sm overflow-hidden flex flex-col border border-gray-100">
                             <div className="h-28 bg-gray-200 relative">
                                 <img src={item.image || DEFAULT_IMG_HOT} className="w-full h-full object-cover" alt={item.name} />
@@ -179,20 +207,49 @@ const HomePage = () => {
                 </div>
             </Box>
 
-            {/* VOUCHERS */}
-            <Box className="px-4 mt-2">
-                <div className="flex justify-between items-end mb-3">
+            {/* --- PHẦN CHỌN CỬA HÀNG --- */}
+            <Box className="px-4 mt-4">
+                <div className="flex justify-between items-center mb-3">
                     <div className="flex items-center gap-1">
                         <FaStore className="text-red-800" />
                         <Text.Title size="medium" className="font-bold text-gray-800">Tại cửa hàng</Text.Title>
                     </div>
-                    <Text size="small" className="text-gray-500">Tất cả {'>'}</Text>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                    {vouchers.length === 0 && <Text className="col-span-2 text-gray-400 italic text-xs text-center">Không tìm thấy voucher nào.</Text>}
+                {/* DROPDOWN CHỌN CỬA HÀNG */}
+                <div className="mb-4 bg-white p-2 rounded-lg border border-gray-200 shadow-sm flex items-center gap-2">
+                    <FaMapMarkerAlt className="text-red-600 ml-2" />
+                    <select
+                        className="w-full bg-transparent outline-none text-sm font-medium text-gray-700 py-1"
+                        value={selectedStoreId || ""}
+                        onChange={(e) => setSelectedStoreId(e.target.value)}
+                        disabled={!Array.isArray(stores) || stores.length === 0}
+                    >
+                        {(!Array.isArray(stores) || stores.length === 0) && <option value="">Đang tải danh sách...</option>}
 
-                    {vouchers.map((item) => (
+                        {Array.isArray(stores) && stores.map(store => (
+                            <option key={store.id} value={store.id}>
+                                {store.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* GRID VOUCHERS */}
+                <div className="grid grid-cols-2 gap-3 min-h-[100px]">
+                    {loadingVoucher && (
+                        <div className="col-span-2 text-center text-gray-400 py-8 text-xs">
+                            Đang tải ưu đãi...
+                        </div>
+                    )}
+
+                    {!loadingVoucher && (!Array.isArray(vouchers) || vouchers.length === 0) && (
+                        <div className="col-span-2 text-center text-gray-400 py-8 text-xs italic">
+                            Cửa hàng này hiện chưa có ưu đãi nào.
+                        </div>
+                    )}
+
+                    {!loadingVoucher && Array.isArray(vouchers) && vouchers.map((item) => (
                         <div key={item.id} className={`bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 flex flex-col ${!item.isActive ? 'opacity-60 grayscale' : ''}`} onClick={() => item.isActive && handleRedeemClick(item)}>
                             <div className="h-28 bg-red-50 relative">
                                 <img src={item.image || DEFAULT_IMG_VOUCHER} className="w-full h-full object-cover" alt="" />
@@ -215,12 +272,12 @@ const HomePage = () => {
             <div className="fixed bottom-0 left-0 right-0 bg-red-800 h-16 rounded-t-2xl shadow-lg flex justify-around items-center text-white z-50">
                 <NavItem icon={<FaHome size={20} />} label="Trang Chủ" active />
                 <NavItem icon={<FaQrcode size={20} />} label="Tích Điểm" onClick={() => navigate('/earn-points')} />
+                <NavItem icon={<FaGift size={20} />} label="Quà Tặng" onClick={() => navigate('/rewards')} />
                 <NavItem
-                    icon={<FaGift size={20} />}
-                    label="Quà Tặng"
-                    onClick={() => navigate('/rewards')} // <-- THÊM DÒNG NÀY
+                    icon={<FaUser size={20} />}
+                    label="Tài Khoản"
+                    onClick={() => navigate('/profile')} // <-- THÊM DÒNG NÀY
                 />
-                <NavItem icon={<FaUser size={20} />} label="Tài Khoản" />
             </div>
 
             {/* MODAL XÁC NHẬN */}
@@ -238,6 +295,7 @@ const HomePage = () => {
     );
 };
 
+// Component NavItem
 const NavItem = ({ icon, label, active, onClick }) => (
     <div className={`flex flex-col items-center gap-1 ${active ? 'opacity-100' : 'opacity-60'} active:opacity-100 active:scale-95 transition-all`} onClick={onClick}>
         {icon}

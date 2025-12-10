@@ -7,17 +7,20 @@ export const rewardApi = {
     getRewardsByStore: (storeId) => https.get("/api/userZalo/listRewardsByStoreId", {
         params: { storeId }
     }),
-
-    // 3. Đổi quà
+    // 3 Lấy dánh sách cửa hàng
+    getAllStores: () => {
+        return https.get("/api/userZalo/getAllStore");
+    },
+    // 4. Đổi quà
     redeemReward: (rewardId) => https.post(`/api/userZalo/redeemReward/${rewardId}`),
 
-    // 4. Lấy danh sách quà Của Tôi (Đã đổi)
+    // 5. Lấy danh sách quà Của Tôi (Đã đổi)
     getMyRewards: (status = 'all', page = 1) => https.get("/api/userZalo/getAllRewardsUser", {
         params: { status, page } // status: 'unused', 'used', 'expired'
     }),
     getRewarDetail: (rewardId) => {
-        https.get(`/api/userZalo/getInfoRewardUser/${rewardId}`)
+        return https.get(`/api/userZalo/getInfoRewardUser/${rewardId}`)
     },
-    // 5. Nhập mã code tích điểm
+    // 6. Nhập mã code tích điểm
     redeemCode: (code) => https.post("/api/userZalo/redeemCode", { code }),
 };

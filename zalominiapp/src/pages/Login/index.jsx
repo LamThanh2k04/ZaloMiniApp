@@ -1,56 +1,41 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Page, Box, Text, Button, useNavigate, useSnackbar, Icon } from "zmp-ui";
 import { getAccessToken } from "zmp-sdk/apis";
 import { useSetRecoilState } from "recoil";
 import { userState } from "../../state/user";
 import { loginUserZalo } from "../../api/authService";
 
+// --- CHỌN ẢNH MINH HỌA ---
+// Ảnh 1: Hộp quà 3D trên nền xanh (Rất hợp với app Loyalty)
+const HERO_IMAGE = "https://img.freepik.com/free-vector/loyalty-program-concept_74855-6543.jpg?w=826&t=st=1709458000~exp=1709458600~hmac=YOUR_HASH";
 const Login = () => {
     const navigate = useNavigate();
     const setUser = useSetRecoilState(userState);
     const { openSnackbar } = useSnackbar();
     const [loading, setLoading] = useState(false);
 
-    // --- LOGIC ĐĂNG NHẬP (Giữ nguyên như cũ) ---
-    // ... import giữ nguyên
-
     const handleLogin = async () => {
         setLoading(true);
         try {
             const accessToken = await getAccessToken({});
             const res = await loginUserZalo(accessToken);
-
-            console.log("👉 Server trả về:", res.data); // Log để debug
+            console.log("👉 Server trả về:", res.data);
 
             const responseBody = res.data;
-
-            // --- SỬA ĐOẠN NÀY ĐỂ KHỚP VỚI LOG CỦA BẠN ---
-
-            // 1. Lấy chuỗi Token (nằm trong data -> token -> accessToken)
             const tokenString = responseBody.data?.token?.accessToken;
-
-            // 2. Lấy thông tin User
             const userInfo = responseBody.data?.user;
 
             if (tokenString) {
-                // Lưu chuỗi token sạch vào storage
                 localStorage.setItem("user_token", tokenString);
-
-                // Lưu info user vào State
                 setUser({
                     isAuthenticated: true,
                     ...userInfo
                 });
-
                 openSnackbar({ type: "success", text: `Chào mừng ${userInfo.name}!` });
-
-                // Chuyển trang
                 navigate("/home");
             } else {
                 throw new Error("Cấu trúc Token không đúng");
             }
-            // ---------------------------------------------
-
         } catch (error) {
             console.error("Lỗi đăng nhập:", error);
             const serverMessage = error.response?.data?.message || error.message;
@@ -59,76 +44,56 @@ const Login = () => {
             setLoading(false);
         }
     };
-    //     // Debug: In ra ngay lập tức xem code có chạy không
-    //     const token = localStorage.getItem("user_token");
-    //     console.log("🔍 Kiểm tra Token lúc khởi động:", token);
 
-    //     if (token) {
-    //         console.log("✅ Token hợp lệ! Chuẩn bị vào Home...");
-
-    //         // Set User giả lập
-    //         setUser({
-    //             isAuthenticated: true,
-    //             id: "test-user",
-    //             name: "Dev Mode User",
-    //             avatar: "",
-    //             points: 999
-    //         });
-
-    //         // --- MẸO QUAN TRỌNG: Dùng setTimeout ---
-    //         // Chờ 300ms để đảm bảo Router đã sẵn sàng rồi mới chuyển
-    //         setTimeout(() => {
-    //             console.log("🚀 Đang thực hiện chuyển trang...");
-    //             navigate("/home", { animate: false, replace: true });
-    //         }, 300);
-    //     } else {
-    //         console.log("❌ Không tìm thấy token, ở lại trang Login.");
-    //     }
-    // }, []);
     return (
         <Page className="bg-white">
-            {/* Container chính, căn giữa nội dung theo chiều dọc */}
-            <Box className="flex flex-col h-screen justify-between p-6 pt-16 pb-10">
+            <Box className="flex flex-col h-screen justify-between p-6 pt-10 pb-10">
 
-                {/* PHẦN TRÊN: LOGO & TEXT */}
+                {/* PHẦN TRÊN: ẢNH & TEXT */}
                 <Box className="flex flex-col items-center text-center">
-                    {/* 1. Khu vực Logo/Hình minh họa */}
-                    {/* MẸO: Bạn nên thay thẻ div này bằng thẻ <img src={yourSVG} /> để đẹp nhất */}
-                    <div className="mb-10 p-8 bg-blue-50 rounded-full shadow-sm relative overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-tr from-blue-100 to-transparent opacity-50"></div>
-                        {/* Dùng tạm Icon của Zalo làm ví dụ */}
-                        <Icon icon="zi-gift" className="text-blue-600 text-6xl relative z-10" style={{ fontSize: '80px' }} />
+
+                    {/* --- 1. KHU VỰC ẢNH MINH HỌA MỚI --- */}
+                    <div className="w-full max-w-[280px] aspect-square mb-6 relative">
+                        {/* Hiệu ứng nền mờ phía sau ảnh */}
+                        <div className="absolute inset-4 bg-blue-200 rounded-full blur-2xl opacity-40 animate-pulse"></div>
+
+                        <img
+                            src={HERO_IMAGE}
+                            alt="Loyalty Gift"
+                            className="w-full h-full object-contain relative z-10 drop-shadow-sm"
+                        />
                     </div>
 
                     {/* 2. Tiêu đề và Mô tả */}
-                    <Box className="mb-8">
-                        <Text.Title size="xLarge" className="font-bold text-gray-800 mb-3">
-                            Tích Điểm & Nhận Quà
+                    <Box className="mb-4">
+                        <Text.Title size="xLarge" className="font-extrabold text-blue-800 mb-3 uppercase tracking-wide">
+                            POINTHUB
                         </Text.Title>
-                        <Text size="normal" className="text-gray-500 px-6 leading-relaxed">
-                            Khám phá thế giới ưu đãi độc quyền dành riêng cho khách hàng thân thiết.
+                        <Text size="large" className="font-bold text-gray-800 mb-2">
+                            Tích điểm đổi quà
+                        </Text>
+                        <Text size="normal" className="text-gray-500 px-4 leading-relaxed">
+                            Tham gia ngay để nhận hàng ngàn ưu đãi độc quyền dành riêng cho bạn.
                         </Text>
                     </Box>
                 </Box>
 
                 {/* PHẦN DƯỚI: NÚT BẤM */}
                 <Box className="w-full">
-                    {/* Nút bấm được thiết kế nổi bật */}
                     <Button
                         fullWidth
                         size="large"
                         loading={loading}
                         onClick={handleLogin}
-                        // Sử dụng Tailwind để tạo gradient và shadow đẹp mắt
-                        className="rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 shadow-lg shadow-blue-200 border-0"
-                        style={{ height: '54px', fontSize: '18px', fontWeight: '600' }}
-                        prefixIcon={!loading && <Icon icon="zi-arrow-right" />} // Thêm icon mũi tên nếu thích
+                        className="rounded-full bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-200 border-0"
+                        style={{ height: '56px', fontSize: '18px', fontWeight: 'bold' }}
                     >
-                        Bắt đầu ngay
+                        Khám phá ngay
                     </Button>
 
-                    <Text size="xxSmall" className="text-center text-gray-400 mt-6">
-                        Được bảo mật bởi Zalo. Nhanh chóng và an toàn.
+                    <Text size="xxSmall" className="text-center text-gray-400 mt-6 flex justify-center items-center gap-1">
+                        <Icon icon="zi-shield-solid" size={14} className="text-gray-400" />
+                        Đăng nhập an toàn qua Zalo
                     </Text>
                 </Box>
 
