@@ -159,12 +159,14 @@ const ProfilePage = () => {
                             onClick={() => navigate('/notifications')}
                             prefix={<Icon icon="zi-notif" className="text-blue-500" />}
                             suffix={<FaChevronRight className="text-gray-400" size={14} />}
+                            className="text-black"
                             title="Thông báo của tôi"
                         />
                         <List.Item
                             onClick={() => navigate('/partner-register')}
                             prefix={<Icon icon="zi-more-grid" className="text-green-600" />}
                             suffix={<FaChevronRight className="text-gray-400" size={14} />}
+                            className="text-black"
                             title="Đăng ký đối tác"
                         />
                     </List>

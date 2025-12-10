@@ -68,7 +68,7 @@ const NotificationsPage = () => {
         <Page className="bg-gray-100">
             <div className="bg-white p-4 pt-10 sticky top-0 z-50 flex items-center gap-3 shadow-sm">
                 <Icon icon="zi-chevron-left" onClick={() => navigate(-1)} />
-                <Text.Title size="large" className="font-bold">Thông báo</Text.Title>
+                <Text.Title size="large" className="font-bold text-black">Thông báo</Text.Title>
             </div>
 
             <Box className="p-4">
@@ -91,7 +91,7 @@ const NotificationsPage = () => {
                                     <FaInfoCircle />
                                 </div>
                                 <div className="flex-1">
-                                    <Text.Title size="small" className="font-bold line-clamp-2 mb-1">
+                                    <Text.Title size="small" className="font-bold text-black line-clamp-2 mb-1">
                                         {item.title}
                                     </Text.Title>
                                     <Text size="xxSmall" className="text-gray-500 line-clamp-2 mb-2">

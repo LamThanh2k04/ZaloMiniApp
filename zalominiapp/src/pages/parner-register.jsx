@@ -51,7 +51,7 @@ const PartnerRegisterPage = () => {
         <Page className="bg-white">
             <div className="bg-white p-4 pt-10 sticky top-15 z-50 flex items-center gap-3 shadow-sm">
                 <Icon icon="zi-chevron-left" onClick={() => navigate(-1)} />
-                <Text.Title size="large" className="font-bold">Đăng ký đối tác</Text.Title>
+                <Text.Title size="large" className="font-bold text-black">Đăng ký đối tác</Text.Title>
             </div>
 
             <Box className="p-6">

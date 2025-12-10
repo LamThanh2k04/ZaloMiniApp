@@ -190,7 +190,7 @@ const HomePage = () => {
                             <div className="p-2.5 flex-1 flex flex-col justify-between">
                                 <div>
                                     <Text size="xxSmall" className="font-bold text-red-600 uppercase mb-0.5">SL: {item.quantity}</Text>
-                                    <Text size="small" className="font-bold line-clamp-2 h-9 leading-4.5">{item.name}</Text>
+                                    <Text size="small" className="font-bold line-clamp-2 h-9 text-black leading-4.5">{item.name}</Text>
                                     <Text size="xxSmall" className="text-gray-400 mt-1">HSD: {formatDate(item.expiredAt)}</Text>
                                 </div>
                                 <div className="mt-2 flex justify-between items-center">
@@ -256,7 +256,7 @@ const HomePage = () => {
                                 {!item.isActive && <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white font-bold text-xs">TẠM HẾT</div>}
                             </div>
                             <div className="p-3 flex-1 flex flex-col">
-                                <Text size="small" className="font-bold line-clamp-2 h-10 mb-1">{item.name}</Text>
+                                <Text size="small" className="font-bold line-clamp-2 text-black h-10 mb-1">{item.name}</Text>
                                 <div className="w-full h-[1px] bg-gray-100 my-2 border-dashed border-t"></div>
                                 <div className="mt-auto flex justify-between items-center">
                                     <Text className="text-red-700 font-bold text-sm">{item.pointsNeeded} điểm</Text>
